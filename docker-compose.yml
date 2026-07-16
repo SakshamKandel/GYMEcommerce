@@ -25,6 +25,11 @@ services:
   backend:
     build: ./backend
     restart: unless-stopped
+    # Medusa v2 production serves from the build output (.medusa/server),
+    # which shares the image's node_modules via symlink. The database is
+    # migrated explicitly (`docker compose run --rm backend npx medusa
+    # db:migrate`) rather than on every boot.
+    command: sh -c "ln -sfn /app/node_modules /app/.medusa/server/node_modules && cd /app/.medusa/server && npm run start"
     depends_on:
       postgres:
         condition: service_healthy
@@ -50,6 +55,7 @@ services:
       - backend
     environment:
       MEDUSA_BACKEND_URL: http://backend:9000
+      NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY:-pk_test}
       NEXT_PUBLIC_BASE_URL: http://localhost:8000
       NEXT_PUBLIC_DEFAULT_REGION: np
       REVALIDATE_SECRET: ${REVALIDATE_SECRET:-change-me-in-production}
