@@ -1,11 +1,9 @@
 "use client"
 
-import { Button, Heading } from "@medusajs/ui"
-
 import CartTotals from "@modules/common/components/cart-totals"
-import Divider from "@modules/common/components/divider"
 import DiscountCode from "@modules/checkout/components/discount-code"
-import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import PillButton from "@modules/common/components/pill-button"
+import TrustBadgeRow from "@modules/common/components/trust-badges"
 import { HttpTypes } from "@medusajs/types"
 
 type SummaryProps = {
@@ -28,19 +26,33 @@ const Summary = ({ cart }: SummaryProps) => {
   const step = getCheckoutStep(cart)
 
   return (
-    <div className="flex flex-col gap-y-4">
-      <Heading level="h2" className="text-[2rem] leading-[2.75rem]">
-        Summary
-      </Heading>
+    <div className="flex flex-col gap-y-5 border border-line bg-paper p-6">
+      <h2 className="font-display text-2xl uppercase text-ink leading-none">
+        Order summary
+      </h2>
+
       <DiscountCode cart={cart} />
-      <Divider />
+
+      <div className="h-px w-full bg-line" />
+
       <CartTotals totals={cart} />
-      <LocalizedClientLink
+
+      <PillButton
         href={"/checkout?step=" + step}
+        variant="red"
         data-testid="checkout-button"
+        className="w-full justify-center"
       >
-        <Button className="w-full h-10">Go to checkout</Button>
-      </LocalizedClientLink>
+        Proceed to checkout
+      </PillButton>
+
+      <p className="text-center font-mono text-label-sm uppercase tracking-label text-ash">
+        Shipping calculated at checkout · COD available
+      </p>
+
+      <div className="pt-2 border-t border-line">
+        <TrustBadgeRow compact />
+      </div>
     </div>
   )
 }

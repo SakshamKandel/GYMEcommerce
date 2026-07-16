@@ -8,7 +8,7 @@ import { retrieveCustomer } from "@lib/data/customer"
 
 export const metadata: Metadata = {
   title: "Addresses",
-  description: "View your addresses",
+  description: "View and manage your Protein Pasal shipping addresses.",
 }
 
 export default async function Addresses(props: {
@@ -25,11 +25,17 @@ export default async function Addresses(props: {
 
   return (
     <div className="w-full" data-testid="addresses-page-wrapper">
-      <div className="mb-8 flex flex-col gap-y-4">
-        <h1 className="text-2xl-semi">Shipping Addresses</h1>
-        <p className="text-base-regular">
-          View and update your shipping addresses, you can add as many as you
-          like. Saving your addresses will make them available during checkout.
+      <div className="mb-8 flex flex-col gap-y-3">
+        <p className="font-mono text-label uppercase tracking-label text-red">
+          Account
+        </p>
+        <h1 className="font-display text-3xl md:text-4xl uppercase text-ink leading-none">
+          Shipping addresses
+        </h1>
+        <p className="font-body text-body-sm text-ash max-w-lg">
+          Save as many delivery addresses as you like — province, district,
+          ward and all — so checkout is one tap next time. Couriers call the
+          phone on file to confirm Cash-on-Delivery orders.
         </p>
       </div>
       <AddressBook customer={customer} region={region} />

@@ -12,6 +12,9 @@ type Props = {
   searchParams: Promise<{
     page?: string
     sortBy?: SortOptions
+    category?: string
+    minPrice?: string
+    maxPrice?: string
   }>
 }
 
@@ -58,9 +61,14 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     notFound()
   }
 
+  const description =
+    typeof collection.metadata?.description === "string"
+      ? collection.metadata.description
+      : `Shop the official ${collection.title} range at Protein Pasal — 100% authentic, Cash on Delivery across Nepal.`
+
   const metadata = {
-    title: `${collection.title} | Medusa Store`,
-    description: `${collection.title} collection`,
+    title: `${collection.title} — Genuine ${collection.title} supplements in Nepal | Protein Pasal`,
+    description,
   } as Metadata
 
   return metadata
@@ -69,7 +77,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 export default async function CollectionPage(props: Props) {
   const searchParams = await props.searchParams
   const params = await props.params
-  const { sortBy, page } = searchParams
+  const { sortBy, page, category, minPrice, maxPrice } = searchParams
 
   const collection = await getCollectionByHandle(params.handle).then(
     (collection: StoreCollection) => collection
@@ -84,6 +92,9 @@ export default async function CollectionPage(props: Props) {
       collection={collection}
       page={page}
       sortBy={sortBy}
+      category={category}
+      minPrice={minPrice}
+      maxPrice={maxPrice}
       countryCode={params.countryCode}
     />
   )

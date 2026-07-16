@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useActionState } from "react"
+import React from "react"
 import Input from "@modules/common/components/input"
 import AccountInfo from "../account-info"
 import { HttpTypes } from "@medusajs/types"
@@ -31,7 +31,9 @@ const ProfilePassword: React.FC<MyInformationProps> = ({ customer }) => {
       <AccountInfo
         label="Password"
         currentInfo={
-          <span>The password is not shown for security reasons</span>
+          <span className="font-body text-body-sm text-ash">
+            The password is not shown for security reasons
+          </span>
         }
         isSuccess={successState}
         isError={false}

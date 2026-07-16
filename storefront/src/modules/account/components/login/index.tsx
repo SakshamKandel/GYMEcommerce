@@ -14,15 +14,20 @@ const Login = ({ setCurrentView }: Props) => {
 
   return (
     <div
-      className="max-w-sm w-full flex flex-col items-center"
+      className="w-full max-w-sm flex flex-col items-center px-2"
       data-testid="login-page"
     >
-      <h1 className="text-large-semi uppercase mb-6">Welcome back</h1>
-      <p className="text-center text-base-regular text-ui-fg-base mb-8">
-        Sign in to access an enhanced shopping experience.
+      <p className="font-mono text-label uppercase tracking-label text-red mb-4">
+        Account
+      </p>
+      <h1 className="font-display text-display-2 uppercase text-ink text-center leading-none">
+        Welcome back
+      </h1>
+      <p className="text-center font-body text-body-sm text-ash mt-4 mb-8">
+        Sign in for order history, saved addresses &amp; faster checkout.
       </p>
       <form className="w-full" action={formAction}>
-        <div className="flex flex-col w-full gap-y-2">
+        <div className="flex flex-col w-full gap-y-3">
           <Input
             label="Email"
             name="email"
@@ -42,18 +47,21 @@ const Login = ({ setCurrentView }: Props) => {
           />
         </div>
         <ErrorMessage error={message} data-testid="login-error-message" />
-        <SubmitButton data-testid="sign-in-button" className="w-full mt-6">
+        <SubmitButton
+          data-testid="sign-in-button"
+          className="w-full mt-6 !rounded-full !bg-red hover:!bg-red-deep !text-paper !font-body !text-sm !font-semibold !uppercase !tracking-wide !h-auto !py-3.5"
+        >
           Sign in
         </SubmitButton>
       </form>
-      <span className="text-center text-ui-fg-base text-small-regular mt-6">
+      <span className="text-center font-body text-body-sm text-ash mt-6">
         Not a member?{" "}
         <button
           onClick={() => setCurrentView(LOGIN_VIEW.REGISTER)}
-          className="underline"
+          className="font-semibold text-ink underline underline-offset-4 hover:text-red"
           data-testid="register-button"
         >
-          Join us
+          Join Protein Pasal
         </button>
         .
       </span>

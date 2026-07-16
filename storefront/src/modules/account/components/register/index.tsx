@@ -7,6 +7,10 @@ import ErrorMessage from "@modules/checkout/components/error-message"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { signup } from "@lib/data/customer"
+import {
+  NEPAL_PHONE_PATTERN,
+  NEPAL_PHONE_TITLE,
+} from "@modules/account/utils/np-address"
 
 type Props = {
   setCurrentView: (view: LOGIN_VIEW) => void
@@ -17,32 +21,37 @@ const Register = ({ setCurrentView }: Props) => {
 
   return (
     <div
-      className="max-w-sm flex flex-col items-center"
+      className="w-full max-w-sm flex flex-col items-center px-2"
       data-testid="register-page"
     >
-      <h1 className="text-large-semi uppercase mb-6">
-        Become a Medusa Store Member
+      <p className="font-mono text-label uppercase tracking-label text-red mb-4">
+        Account
+      </p>
+      <h1 className="font-display text-display-2 uppercase text-ink text-center leading-none">
+        Join Protein Pasal
       </h1>
-      <p className="text-center text-base-regular text-ui-fg-base mb-4">
-        Create your Medusa Store Member profile, and get access to an enhanced
-        shopping experience.
+      <p className="text-center font-body text-body-sm text-ash mt-4 mb-8">
+        Create a profile for faster checkout, saved addresses &amp; order
+        tracking on every Cash-on-Delivery order.
       </p>
       <form className="w-full flex flex-col" action={formAction}>
-        <div className="flex flex-col w-full gap-y-2">
-          <Input
-            label="First name"
-            name="first_name"
-            required
-            autoComplete="given-name"
-            data-testid="first-name-input"
-          />
-          <Input
-            label="Last name"
-            name="last_name"
-            required
-            autoComplete="family-name"
-            data-testid="last-name-input"
-          />
+        <div className="flex flex-col w-full gap-y-3">
+          <div className="grid grid-cols-2 gap-x-3">
+            <Input
+              label="First name"
+              name="first_name"
+              required
+              autoComplete="given-name"
+              data-testid="first-name-input"
+            />
+            <Input
+              label="Last name"
+              name="last_name"
+              required
+              autoComplete="family-name"
+              data-testid="last-name-input"
+            />
+          </div>
           <Input
             label="Email"
             name="email"
@@ -52,10 +61,15 @@ const Register = ({ setCurrentView }: Props) => {
             data-testid="email-input"
           />
           <Input
-            label="Phone"
+            label="Phone (98XXXXXXXX)"
             name="phone"
             type="tel"
             autoComplete="tel"
+            required
+            pattern={NEPAL_PHONE_PATTERN}
+            title={NEPAL_PHONE_TITLE}
+            inputMode="numeric"
+            maxLength={10}
             data-testid="phone-input"
           />
           <Input
@@ -68,32 +82,30 @@ const Register = ({ setCurrentView }: Props) => {
           />
         </div>
         <ErrorMessage error={message} data-testid="register-error" />
-        <span className="text-center text-ui-fg-base text-small-regular mt-6">
-          By creating an account, you agree to Medusa Store&apos;s{" "}
-          <LocalizedClientLink
-            href="/content/privacy-policy"
-            className="underline"
-          >
+        <span className="text-center font-body text-body-sm text-ash mt-6">
+          By creating an account, you agree to Protein Pasal&apos;s{" "}
+          <LocalizedClientLink href="/privacy" className="underline underline-offset-4">
             Privacy Policy
           </LocalizedClientLink>{" "}
           and{" "}
-          <LocalizedClientLink
-            href="/content/terms-of-use"
-            className="underline"
-          >
+          <LocalizedClientLink href="/terms" className="underline underline-offset-4">
             Terms of Use
           </LocalizedClientLink>
           .
         </span>
-        <SubmitButton className="w-full mt-6" data-testid="register-button">
-          Join
+        <SubmitButton
+          className="w-full mt-6 !rounded-full !bg-red hover:!bg-red-deep !text-paper !font-body !text-sm !font-semibold !uppercase !tracking-wide !h-auto !py-3.5"
+          data-testid="register-button"
+        >
+          Create account
         </SubmitButton>
       </form>
-      <span className="text-center text-ui-fg-base text-small-regular mt-6">
+      <span className="text-center font-body text-body-sm text-ash mt-6">
         Already a member?{" "}
         <button
           onClick={() => setCurrentView(LOGIN_VIEW.SIGN_IN)}
-          className="underline"
+          className="font-semibold text-ink underline underline-offset-4 hover:text-red"
+          data-testid="sign-in-button"
         >
           Sign in
         </button>

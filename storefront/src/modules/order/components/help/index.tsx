@@ -1,23 +1,45 @@
-import { Heading } from "@medusajs/ui"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
-import React from "react"
+
+const WHATSAPP_NUMBER =
+  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "977XXXXXXXXXX" // TODO(business-contact)
 
 const Help = () => {
   return (
-    <div className="mt-6">
-      <Heading className="text-base-semi">Need help?</Heading>
-      <div className="text-base-regular my-2">
-        <ul className="gap-y-2 flex flex-col">
-          <li>
-            <LocalizedClientLink href="/contact">Contact</LocalizedClientLink>
-          </li>
-          <li>
-            <LocalizedClientLink href="/contact">
-              Returns & Exchanges
-            </LocalizedClientLink>
-          </li>
-        </ul>
-      </div>
+    <div className="border-t border-line pt-6">
+      <p className="font-mono text-label uppercase tracking-label text-red mb-2">
+        Need help?
+      </p>
+      <h3 className="font-body text-h4 font-semibold text-ink mb-3">
+        We&apos;re here for you
+      </h3>
+      <ul className="flex flex-col gap-y-2 font-body text-body-sm">
+        <li>
+          <a
+            href={`https://wa.me/${WHATSAPP_NUMBER}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-ink underline underline-offset-4 hover:text-red"
+          >
+            Chat with us on WhatsApp
+          </a>
+        </li>
+        <li>
+          <LocalizedClientLink
+            href="/returns"
+            className="text-ink underline underline-offset-4 hover:text-red"
+          >
+            Returns &amp; exchanges
+          </LocalizedClientLink>
+        </li>
+        <li>
+          <LocalizedClientLink
+            href="/authenticity"
+            className="text-ink underline underline-offset-4 hover:text-red"
+          >
+            Authenticity promise
+          </LocalizedClientLink>
+        </li>
+      </ul>
     </div>
   )
 }

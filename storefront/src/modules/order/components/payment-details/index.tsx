@@ -1,8 +1,5 @@
-import { Container, Heading, Text } from "@medusajs/ui"
-
-import { isStripeLike, paymentInfoMap } from "@lib/constants"
-import Divider from "@modules/common/components/divider"
-import { convertToLocale } from "@lib/util/money"
+import { isManual, paymentInfoMap } from "@lib/constants"
+import { formatNPR } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
 
 type PaymentDetailsProps = {
@@ -10,52 +7,37 @@ type PaymentDetailsProps = {
 }
 
 const PaymentDetails = ({ order }: PaymentDetailsProps) => {
-  const payment = order.payment_collections?.[0].payments?.[0]
+  const payment = order.payment_collections?.[0]?.payments?.[0]
 
   return (
     <div>
-      <Heading level="h2" className="flex flex-row text-3xl-regular my-6">
+      <h2 className="font-body text-h4 font-semibold text-ink mb-3">
         Payment
-      </Heading>
-      <div>
-        {payment && (
-          <div className="flex items-start gap-x-1 w-full">
-            <div className="flex flex-col w-1/3">
-              <Text className="txt-medium-plus text-ui-fg-base mb-1">
-                Payment method
-              </Text>
-              <Text
-                className="txt-medium text-ui-fg-subtle"
-                data-testid="payment-method"
-              >
-                {paymentInfoMap[payment.provider_id].title}
-              </Text>
-            </div>
-            <div className="flex flex-col w-2/3">
-              <Text className="txt-medium-plus text-ui-fg-base mb-1">
-                Payment details
-              </Text>
-              <div className="flex gap-2 txt-medium text-ui-fg-subtle items-center">
-                <Container className="flex items-center h-7 w-fit p-2 bg-ui-button-neutral-hover">
-                  {paymentInfoMap[payment.provider_id].icon}
-                </Container>
-                <Text data-testid="payment-amount">
-                  {isStripeLike(payment.provider_id) && payment.data?.card_last4
-                    ? `**** **** **** ${payment.data.card_last4}`
-                    : `${convertToLocale({
-                        amount: payment.amount,
-                        currency_code: order.currency_code,
-                      })} paid at ${new Date(
-                        payment.created_at ?? ""
-                      ).toLocaleString()}`}
-                </Text>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <Divider className="mt-8" />
+      </h2>
+      {payment ? (
+        <div className="border border-line p-4 flex flex-col gap-1.5">
+          <p className="font-body text-sm font-semibold text-ink" data-testid="payment-method">
+            {isManual(payment.provider_id)
+              ? "Cash on Delivery"
+              : paymentInfoMap[payment.provider_id]?.title || "Payment"}
+          </p>
+          {isManual(payment.provider_id) ? (
+            <p className="font-body text-body-sm text-ash">
+              Pay the rider {formatNPR(order.total)} in cash when your order
+              arrives. No advance payment needed.
+            </p>
+          ) : (
+            <p className="font-body text-body-sm text-ash" data-testid="payment-amount">
+              {formatNPR(payment.amount)} paid on{" "}
+              {new Date(payment.created_at ?? "").toLocaleDateString()}
+            </p>
+          )}
+        </div>
+      ) : (
+        <p className="font-body text-body-sm text-ash">
+          Cash on Delivery — pay the rider when your order arrives.
+        </p>
+      )}
     </div>
   )
 }

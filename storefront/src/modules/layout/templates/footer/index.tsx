@@ -1,155 +1,270 @@
 import { listCategories } from "@lib/data/categories"
 import { listCollections } from "@lib/data/collections"
-import { Text, clx } from "@medusajs/ui"
 
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
-import MedusaCTA from "@modules/layout/components/medusa-cta"
+import TrustBadgeRow from "@modules/common/components/trust-badges"
+
+// TODO(business-contact): replace with the real business WhatsApp number via
+// NEXT_PUBLIC_WHATSAPP_NUMBER in .env.local.
+const WHATSAPP_NUMBER =
+  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "977XXXXXXXXXX"
+
+const footerLinkClasses =
+  "font-body text-sm text-paper/70 hover:text-paper hover:underline underline-offset-4"
+
+const columnLabelClasses =
+  "font-mono text-label uppercase tracking-label text-paper/50"
+
+// Delivery strings come verbatim from master plan §3 (R8) — do not paraphrase.
+const SHOP_LINKS = [
+  { label: "All products", href: "/store" },
+  { label: "New arrivals", href: "/store?sortBy=created_at" },
+  { label: "Authenticity promise", href: "/authenticity" },
+]
+
+const HELP_LINKS = [
+  { label: "Shipping & delivery", href: "/shipping" },
+  { label: "Returns & refunds", href: "/returns" },
+  { label: "Authenticity", href: "/authenticity" },
+  { label: "Terms of service", href: "/terms" },
+  { label: "Privacy policy", href: "/privacy" },
+]
+
+const ACCOUNT_LINKS = [
+  { label: "Log in / register", href: "/account" },
+  { label: "My orders", href: "/account/orders" },
+  { label: "Cart", href: "/cart" },
+]
 
 export default async function Footer() {
   const { collections } = await listCollections({
-    fields: "*products",
+    fields: "id,handle,title",
   })
   const productCategories = await listCategories()
 
+  const topLevelCategories = (productCategories ?? []).filter(
+    (c) => !c.parent_category
+  )
+
+  const marqueeCopies = Array.from({ length: 8 })
+
   return (
-    <footer className="border-t border-ui-border-base w-full">
-      <div className="content-container flex flex-col w-full">
-        <div className="flex flex-col gap-y-6 xsmall:flex-row items-start justify-between py-40">
+    <footer className="w-full">
+      {/* Trust-badge top strip (03 §12.1) */}
+      <div className="bg-fog border-t border-line">
+        <div className="shell flex justify-center py-8">
+          <TrustBadgeRow className="justify-center" />
+        </div>
+      </div>
+
+      <div className="on-dark bg-ink text-paper">
+        {/* Link columns */}
+        <div className="shell grid gap-10 py-16 md:py-20 md:grid-cols-3 medium:grid-cols-[1.6fr_repeat(5,1fr)]">
           <div>
             <LocalizedClientLink
               href="/"
-              className="txt-compact-xlarge-plus text-ui-fg-subtle hover:text-ui-fg-base uppercase"
+              className="font-display text-3xl uppercase leading-none text-paper hover:text-paper"
             >
-              Medusa Store
+              Protein Pasal
+            </LocalizedClientLink>
+            <p className="mt-4 max-w-xs font-body text-body-sm text-paper/70">
+              Nepal&apos;s multi-brand supplement store. Authentic sports
+              nutrition from the world&apos;s most trusted brands — sourced
+              from authorized distributors and delivered across Nepal, Cash on
+              Delivery.
+            </p>
+            <p className="mt-4 font-mono text-label-sm uppercase tracking-label text-paper/50">
+              Inside Kathmandu Valley: 1–2 days · Outside Valley: 3–5 days
+            </p>
+          </div>
+
+          <nav className="flex flex-col gap-3" aria-label="Shop">
+            <p className={columnLabelClasses}>Shop</p>
+            {SHOP_LINKS.map((link) => (
+              <LocalizedClientLink
+                key={link.label}
+                href={link.href}
+                className={footerLinkClasses}
+              >
+                {link.label}
+              </LocalizedClientLink>
+            ))}
+          </nav>
+
+          {collections && collections.length > 0 && (
+            <nav className="flex flex-col gap-3" aria-label="Brands">
+              <p className={columnLabelClasses}>Brands</p>
+              {collections.slice(0, 8).map((c) => (
+                <LocalizedClientLink
+                  key={c.id}
+                  href={`/collections/${c.handle}`}
+                  className={footerLinkClasses}
+                >
+                  {c.title}
+                </LocalizedClientLink>
+              ))}
+              <LocalizedClientLink href="/store" className={footerLinkClasses}>
+                All brands
+              </LocalizedClientLink>
+            </nav>
+          )}
+
+          {topLevelCategories.length > 0 && (
+            <nav className="flex flex-col gap-3" aria-label="Categories">
+              <p className={columnLabelClasses}>Categories</p>
+              <ul
+                className="flex flex-col gap-3"
+                data-testid="footer-categories"
+              >
+                {topLevelCategories.slice(0, 7).map((c) => (
+                  <li key={c.id}>
+                    <LocalizedClientLink
+                      className={footerLinkClasses}
+                      href={`/categories/${c.handle}`}
+                      data-testid="category-link"
+                    >
+                      {c.name}
+                    </LocalizedClientLink>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
+
+          <nav className="flex flex-col gap-3" aria-label="Help">
+            <p className={columnLabelClasses}>Help</p>
+            <a
+              href={`https://wa.me/${WHATSAPP_NUMBER}`}
+              target="_blank"
+              rel="noreferrer"
+              className={footerLinkClasses}
+            >
+              WhatsApp support
+            </a>
+            {HELP_LINKS.map((link) => (
+              <LocalizedClientLink
+                key={link.label}
+                href={link.href}
+                className={footerLinkClasses}
+              >
+                {link.label}
+              </LocalizedClientLink>
+            ))}
+          </nav>
+
+          <nav className="flex flex-col gap-3" aria-label="Account">
+            <p className={columnLabelClasses}>Account</p>
+            {ACCOUNT_LINKS.map((link) => (
+              <LocalizedClientLink
+                key={link.label}
+                href={link.href}
+                className={footerLinkClasses}
+              >
+                {link.label}
+              </LocalizedClientLink>
+            ))}
+          </nav>
+        </div>
+
+        {/* Contact / payment row */}
+        <div className="shell flex flex-col gap-4 border-t border-white/10 py-6 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <a
+              href={`https://wa.me/${WHATSAPP_NUMBER}`}
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono text-label-sm uppercase tracking-label text-paper/70 hover:text-paper"
+            >
+              WhatsApp / Viber
+            </a>
+            {/* TODO(business-contact): swap placeholder social profiles for the
+                real accounts once the business creates them. */}
+            <a
+              href="https://instagram.com/proteinpasal"
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono text-label-sm uppercase tracking-label text-paper/70 hover:text-paper"
+            >
+              Instagram
+            </a>
+            <a
+              href="https://facebook.com/proteinpasal"
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono text-label-sm uppercase tracking-label text-paper/70 hover:text-paper"
+            >
+              Facebook
+            </a>
+            <a
+              href="https://tiktok.com/@proteinpasal"
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono text-label-sm uppercase tracking-label text-paper/70 hover:text-paper"
+            >
+              TikTok
+            </a>
+          </div>
+          <p className="font-mono text-label-sm uppercase tracking-label text-paper/50">
+            We accept: Cash on Delivery
+          </p>
+        </div>
+
+        {/* Legal row */}
+        <div className="shell flex flex-col gap-3 border-t border-white/10 py-6 md:flex-row md:items-center md:justify-between">
+          <p className="font-mono text-label-sm uppercase tracking-label text-paper/50">
+            © {new Date().getFullYear()} Protein Pasal · Kathmandu, Nepal
+          </p>
+          {/*
+            TODO(business-legal): PAN/VAT No. row — render only once the
+            business supplies the real registered number (05 §6). Never ship an
+            empty or fabricated slot:
+            <p className="font-mono text-label-sm uppercase tracking-label text-paper/50">
+              PAN/VAT No.: XXXXXXXXX
+            </p>
+          */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <LocalizedClientLink
+              href="/privacy"
+              className="font-mono text-label-sm uppercase tracking-label text-paper/50 hover:text-paper"
+            >
+              Privacy
+            </LocalizedClientLink>
+            <LocalizedClientLink
+              href="/terms"
+              className="font-mono text-label-sm uppercase tracking-label text-paper/50 hover:text-paper"
+            >
+              Terms
+            </LocalizedClientLink>
+            <LocalizedClientLink
+              href="/returns"
+              className="font-mono text-label-sm uppercase tracking-label text-paper/50 hover:text-paper"
+            >
+              Returns
+            </LocalizedClientLink>
+            <LocalizedClientLink
+              href="/shipping"
+              className="font-mono text-label-sm uppercase tracking-label text-paper/50 hover:text-paper"
+            >
+              Shipping
             </LocalizedClientLink>
           </div>
-          <div className="text-small-regular gap-10 md:gap-x-16 grid grid-cols-2 sm:grid-cols-3">
-            {productCategories && productCategories?.length > 0 && (
-              <div className="flex flex-col gap-y-2">
-                <span className="txt-small-plus txt-ui-fg-base">
-                  Categories
-                </span>
-                <ul
-                  className="grid grid-cols-1 gap-2"
-                  data-testid="footer-categories"
-                >
-                  {productCategories?.slice(0, 6).map((c) => {
-                    if (c.parent_category) {
-                      return
-                    }
-
-                    const children =
-                      c.category_children?.map((child) => ({
-                        name: child.name,
-                        handle: child.handle,
-                        id: child.id,
-                      })) || null
-
-                    return (
-                      <li
-                        className="flex flex-col gap-2 text-ui-fg-subtle txt-small"
-                        key={c.id}
-                      >
-                        <LocalizedClientLink
-                          className={clx(
-                            "hover:text-ui-fg-base",
-                            children && "txt-small-plus"
-                          )}
-                          href={`/categories/${c.handle}`}
-                          data-testid="category-link"
-                        >
-                          {c.name}
-                        </LocalizedClientLink>
-                        {children && (
-                          <ul className="grid grid-cols-1 ml-3 gap-2">
-                            {children &&
-                              children.map((child) => (
-                                <li key={child.id}>
-                                  <LocalizedClientLink
-                                    className="hover:text-ui-fg-base"
-                                    href={`/categories/${child.handle}`}
-                                    data-testid="category-link"
-                                  >
-                                    {child.name}
-                                  </LocalizedClientLink>
-                                </li>
-                              ))}
-                          </ul>
-                        )}
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
-            )}
-            {collections && collections.length > 0 && (
-              <div className="flex flex-col gap-y-2">
-                <span className="txt-small-plus txt-ui-fg-base">
-                  Collections
-                </span>
-                <ul
-                  className={clx(
-                    "grid grid-cols-1 gap-2 text-ui-fg-subtle txt-small",
-                    {
-                      "grid-cols-2": (collections?.length || 0) > 3,
-                    }
-                  )}
-                >
-                  {collections?.slice(0, 6).map((c) => (
-                    <li key={c.id}>
-                      <LocalizedClientLink
-                        className="hover:text-ui-fg-base"
-                        href={`/collections/${c.handle}`}
-                      >
-                        {c.title}
-                      </LocalizedClientLink>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <div className="flex flex-col gap-y-2">
-              <span className="txt-small-plus txt-ui-fg-base">Medusa</span>
-              <ul className="grid grid-cols-1 gap-y-2 text-ui-fg-subtle txt-small">
-                <li>
-                  <a
-                    href="https://github.com/medusajs"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:text-ui-fg-base"
-                  >
-                    GitHub
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://docs.medusajs.com"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:text-ui-fg-base"
-                  >
-                    Documentation
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://github.com/medusajs/nextjs-starter-medusa"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:text-ui-fg-base"
-                  >
-                    Source code
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
         </div>
-        <div className="flex w-full mb-16 justify-between text-ui-fg-muted">
-          <Text className="txt-compact-small">
-            © {new Date().getFullYear()} Medusa Store. All rights reserved.
-          </Text>
-          <MedusaCTA />
+
+        {/* Giant repeating brand marquee (02 §5.10) — first copy real, rest aria-hidden */}
+        <div className="overflow-hidden border-t border-white/10 py-6 select-none">
+          <div className="flex w-max animate-marquee hover:[animation-play-state:paused]">
+            {marqueeCopies.map((_, i) => (
+              <span
+                key={i}
+                aria-hidden={i > 0 || undefined}
+                className={`shrink-0 whitespace-nowrap pr-8 font-display text-[clamp(3rem,12vw,10rem)] uppercase leading-none ${
+                  i % 2 === 0 ? "text-paper/90" : "text-stroke"
+                }`}
+              >
+                Protein Pasal ✦&nbsp;
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     </footer>

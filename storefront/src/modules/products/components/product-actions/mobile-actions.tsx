@@ -1,12 +1,14 @@
 import { Dialog, Transition } from "@headlessui/react"
-import { Button, clx } from "@medusajs/ui"
+import { clx } from "@medusajs/ui"
 import React, { Fragment, useMemo } from "react"
 
 import useToggleState from "@lib/hooks/use-toggle-state"
 import ChevronDown from "@modules/common/icons/chevron-down"
 import X from "@modules/common/icons/x"
+import Spinner from "@modules/common/icons/spinner"
 
 import { getProductPrice } from "@lib/util/get-product-price"
+import { formatNPR } from "@lib/util/money"
 import OptionSelect from "./option-select"
 import { HttpTypes } from "@medusajs/types"
 import { isSimpleProduct } from "@lib/util/product"
@@ -50,6 +52,18 @@ const MobileActions: React.FC<MobileActionsProps> = ({
     return variantPrice || cheapestPrice || null
   }, [price])
 
+  const isNpr = selectedPrice?.currency_code?.toLowerCase() === "npr"
+  const priceLabel = selectedPrice
+    ? isNpr
+      ? formatNPR(selectedPrice.calculated_price_number)
+      : selectedPrice.calculated_price
+    : null
+  const originalLabel = selectedPrice
+    ? isNpr
+      ? formatNPR(selectedPrice.original_price_number)
+      : selectedPrice.original_price
+    : null
+
   const isSimple = isSimpleProduct(product)
 
   return (
@@ -70,65 +84,71 @@ const MobileActions: React.FC<MobileActionsProps> = ({
           leaveTo="opacity-0"
         >
           <div
-            className="bg-white flex flex-col gap-y-3 justify-center items-center text-large-regular p-4 h-full w-full border-t border-gray-200"
+            className="on-dark flex h-full w-full flex-col gap-y-3 border-t border-white/12 bg-ink p-4 text-paper"
             data-testid="mobile-actions"
           >
             <div className="flex items-center gap-x-2">
-              <span data-testid="mobile-title">{product.title}</span>
-              <span>—</span>
+              <span
+                className="font-body text-sm font-semibold text-paper line-clamp-1"
+                data-testid="mobile-title"
+              >
+                {product.title}
+              </span>
+              <span className="text-paper/40">—</span>
               {selectedPrice ? (
-                <div className="flex items-end gap-x-2 text-ui-fg-base">
+                <div className="flex items-end gap-x-2">
                   {selectedPrice.price_type === "sale" && (
-                    <p>
-                      <span className="line-through text-small-regular">
-                        {selectedPrice.original_price}
-                      </span>
-                    </p>
+                    <span className="font-body text-body-sm text-paper/50 line-through">
+                      {originalLabel}
+                    </span>
                   )}
                   <span
-                    className={clx({
-                      "text-ui-fg-interactive":
-                        selectedPrice.price_type === "sale",
+                    className={clx("font-body font-bold text-paper", {
+                      "text-red": selectedPrice.price_type === "sale",
                     })}
                   >
-                    {selectedPrice.calculated_price}
+                    {priceLabel}
                   </span>
                 </div>
               ) : (
                 <div></div>
               )}
             </div>
-            <div className={clx("grid grid-cols-2 w-full gap-x-4", {
-              "!grid-cols-1": isSimple
-            })}>
-              {!isSimple && <Button
-                onClick={open}
-                variant="secondary"
-                className="w-full"
-                data-testid="mobile-actions-button"
-              >
-                <div className="flex items-center justify-between w-full">
+            <div
+              className={clx("grid grid-cols-2 w-full gap-x-3", {
+                "!grid-cols-1": isSimple,
+              })}
+            >
+              {!isSimple && (
+                <button
+                  onClick={open}
+                  className="flex w-full items-center justify-between border border-white/40 bg-transparent px-4 py-3 font-body text-xs font-semibold uppercase tracking-wide text-paper transition-colors hover:bg-paper hover:text-ink"
+                  data-testid="mobile-actions-button"
+                >
                   <span>
                     {variant
-                      ? Object.values(options).join(" / ")
-                      : "Select Options"}
+                      ? Object.values(options).join(" / ")
+                      : "Select options"}
                   </span>
                   <ChevronDown />
-                </div>
-              </Button>}
-              <Button
+                </button>
+              )}
+              <button
                 onClick={handleAddToCart}
-                disabled={!inStock || !variant}
-                className="w-full"
-                isLoading={isAdding}
+                disabled={!inStock || !variant || isAdding}
+                className="flex w-full items-center justify-center gap-2 bg-red px-4 py-3 font-body text-xs font-semibold uppercase tracking-wide text-paper transition-colors hover:bg-red-deep disabled:cursor-not-allowed disabled:bg-coal disabled:text-paper/50"
                 data-testid="mobile-cart-button"
               >
-                {!variant
-                  ? "Select variant"
-                  : !inStock
-                  ? "Out of stock"
-                  : "Add to cart"}
-              </Button>
+                {isAdding ? (
+                  <Spinner size="16" />
+                ) : !variant ? (
+                  "Select variant"
+                ) : !inStock ? (
+                  "Out of stock"
+                ) : (
+                  "Add to cart"
+                )}
+              </button>
             </div>
           </div>
         </Transition>
@@ -144,7 +164,7 @@ const MobileActions: React.FC<MobileActionsProps> = ({
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-gray-700 bg-opacity-75 backdrop-blur-sm" />
+            <div className="fixed inset-0 bg-ink/70 backdrop-blur-sm" />
           </Transition.Child>
 
           <div className="fixed bottom-0 inset-x-0">
@@ -165,13 +185,13 @@ const MobileActions: React.FC<MobileActionsProps> = ({
                   <div className="w-full flex justify-end pr-6">
                     <button
                       onClick={close}
-                      className="bg-white w-12 h-12 rounded-full text-ui-fg-base flex justify-center items-center"
+                      className="flex h-12 w-12 items-center justify-center rounded-full bg-paper text-ink"
                       data-testid="close-modal-button"
                     >
                       <X />
                     </button>
                   </div>
-                  <div className="bg-white px-6 py-12">
+                  <div className="bg-paper px-6 py-12">
                     {(product.variants?.length ?? 0) > 1 && (
                       <div className="flex flex-col gap-y-6">
                         {(product.options || []).map((option) => {

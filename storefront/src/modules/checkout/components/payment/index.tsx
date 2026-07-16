@@ -1,15 +1,14 @@
 "use client"
 
 import { RadioGroup } from "@headlessui/react"
-import { isStripeLike, paymentInfoMap } from "@lib/constants"
+import { isManual, isStripeLike, paymentInfoMap } from "@lib/constants"
 import { initiatePaymentSession } from "@lib/data/cart"
-import { CheckCircleSolid, CreditCard } from "@medusajs/icons"
-import { Button, Container, Heading, Text, clx } from "@medusajs/ui"
+import { Button, clx } from "@medusajs/ui"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import PaymentContainer, {
   StripeCardContainer,
 } from "@modules/checkout/components/payment-container"
-import Divider from "@modules/common/components/divider"
+import { CheckCircleSolid } from "@medusajs/icons"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 
@@ -38,6 +37,15 @@ const Payment = ({
 
   const isOpen = searchParams.get("step") === "payment"
 
+  // Provider-agnostic (R16 / 05 §1.2): when the region exposes exactly ONE
+  // payment provider we skip the selection UI entirely and show a static
+  // confirmation block. When eSewa/Khalti are added later as extra providers,
+  // availablePaymentMethods.length becomes > 1 and the RadioGroup below renders
+  // them automatically (COD first, wallets after) with zero rework here.
+  const singleProvider =
+    availablePaymentMethods?.length === 1 ? availablePaymentMethods[0] : null
+  const singleIsManual = !!singleProvider && isManual(singleProvider.id)
+
   const setPaymentMethod = async (method: string) => {
     setError(null)
     setSelectedPaymentMethod(method)
@@ -53,6 +61,18 @@ const Payment = ({
 
   const paymentReady =
     (activeSession && cart?.shipping_methods.length !== 0) || paidByGiftcard
+
+  // Auto-select the sole non-card provider (COD) so the static block's
+  // "Continue" button is enabled and handleSubmit initiates its session.
+  useEffect(() => {
+    if (
+      singleProvider &&
+      !isStripeLike(singleProvider.id) &&
+      !selectedPaymentMethod
+    ) {
+      setSelectedPaymentMethod(singleProvider.id)
+    }
+  }, [singleProvider?.id, selectedPaymentMethod])
 
   const createQueryString = useCallback(
     (name: string, value: string) => {
@@ -104,38 +124,67 @@ const Payment = ({
     setError(null)
   }, [isOpen])
 
+  const summaryProviderTitle = (providerId?: string) =>
+    isManual(providerId)
+      ? "Cash on Delivery"
+      : paymentInfoMap[providerId as string]?.title || providerId
+
   return (
-    <div className="bg-white">
+    <div className="border-b border-line pb-8">
       <div className="flex flex-row items-center justify-between mb-6">
-        <Heading
-          level="h2"
+        <h2
           className={clx(
-            "flex flex-row text-3xl-regular gap-x-2 items-baseline",
+            "flex items-center gap-x-3 font-display text-2xl uppercase text-ink leading-none",
             {
-              "opacity-50 pointer-events-none select-none":
+              "opacity-40 pointer-events-none select-none":
                 !isOpen && !paymentReady,
             }
           )}
         >
+          <span className="font-mono text-label text-red tracking-label">
+            03
+          </span>
           Payment
-          {!isOpen && paymentReady && <CheckCircleSolid />}
-        </Heading>
+          {!isOpen && paymentReady && <CheckCircleSolid className="text-ink" />}
+        </h2>
         {!isOpen && paymentReady && (
-          <Text>
-            <button
-              onClick={handleEdit}
-              className="text-ui-fg-interactive hover:text-ui-fg-interactive-hover"
-              data-testid="edit-payment-button"
-            >
-              Edit
-            </button>
-          </Text>
+          <button
+            onClick={handleEdit}
+            className="font-mono text-label-sm uppercase tracking-label text-red hover:text-red-deep"
+            data-testid="edit-payment-button"
+          >
+            Edit
+          </button>
         )}
       </div>
       <div>
         <div className={isOpen ? "block" : "hidden"}>
-          {!paidByGiftcard && availablePaymentMethods?.length && (
-            <>
+          {/* Single provider (COD at launch) → static block, no selector (R16) */}
+          {!paidByGiftcard && singleProvider && (
+            <div
+              className="flex items-start gap-x-4 border border-ink bg-fog p-5"
+              data-testid="payment-method-summary"
+            >
+              <CheckCircleSolid className="text-ink mt-0.5 shrink-0" />
+              <div>
+                <p className="font-body text-sm font-semibold uppercase tracking-wide text-ink">
+                  {singleIsManual
+                    ? "Pay with Cash on Delivery"
+                    : summaryProviderTitle(singleProvider.id)}
+                </p>
+                <p className="mt-1.5 font-body text-body-sm text-ash">
+                  {singleIsManual
+                    ? "Pay the rider when your order arrives. No advance payment needed."
+                    : "You'll complete payment after placing your order."}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Multiple providers → real selection UI (future eSewa/Khalti) */}
+          {!paidByGiftcard &&
+            !singleProvider &&
+            availablePaymentMethods?.length && (
               <RadioGroup
                 value={selectedPaymentMethod}
                 onChange={(value: string) => setPaymentMethod(value)}
@@ -161,20 +210,19 @@ const Payment = ({
                   </div>
                 ))}
               </RadioGroup>
-            </>
-          )}
+            )}
 
           {paidByGiftcard && (
-            <div className="flex flex-col w-1/3">
-              <Text className="txt-medium-plus text-ui-fg-base mb-1">
+            <div className="flex flex-col">
+              <p className="font-mono text-label-sm uppercase tracking-label text-ash mb-1">
                 Payment method
-              </Text>
-              <Text
-                className="txt-medium text-ui-fg-subtle"
+              </p>
+              <p
+                className="font-body text-body-sm text-ink"
                 data-testid="payment-method-summary"
               >
                 Gift card
-              </Text>
+              </p>
             </div>
           )}
 
@@ -185,7 +233,7 @@ const Payment = ({
 
           <Button
             size="large"
-            className="mt-6"
+            className="mt-6 uppercase tracking-wide"
             onClick={handleSubmit}
             isLoading={isLoading}
             disabled={
@@ -195,7 +243,7 @@ const Payment = ({
             data-testid="submit-payment-button"
           >
             {!activeSession && isStripeLike(selectedPaymentMethod)
-              ? " Enter card details"
+              ? "Enter card details"
               : "Continue to review"}
           </Button>
         </div>
@@ -203,55 +251,48 @@ const Payment = ({
         <div className={isOpen ? "hidden" : "block"}>
           {cart && paymentReady && activeSession ? (
             <div className="flex items-start gap-x-1 w-full">
-              <div className="flex flex-col w-1/3">
-                <Text className="txt-medium-plus text-ui-fg-base mb-1">
+              <div className="flex flex-col w-1/2">
+                <p className="font-mono text-label-sm uppercase tracking-label text-ash mb-1">
                   Payment method
-                </Text>
-                <Text
-                  className="txt-medium text-ui-fg-subtle"
+                </p>
+                <p
+                  className="font-body text-body-sm text-ink"
                   data-testid="payment-method-summary"
                 >
-                  {paymentInfoMap[activeSession?.provider_id]?.title ||
-                    activeSession?.provider_id}
-                </Text>
+                  {summaryProviderTitle(activeSession?.provider_id)}
+                </p>
               </div>
-              <div className="flex flex-col w-1/3">
-                <Text className="txt-medium-plus text-ui-fg-base mb-1">
+              <div className="flex flex-col w-1/2">
+                <p className="font-mono text-label-sm uppercase tracking-label text-ash mb-1">
                   Payment details
-                </Text>
+                </p>
                 <div
-                  className="flex gap-2 txt-medium text-ui-fg-subtle items-center"
+                  className="font-body text-body-sm text-ash"
                   data-testid="payment-details-summary"
                 >
-                  <Container className="flex items-center h-7 w-fit p-2 bg-ui-button-neutral-hover">
-                    {paymentInfoMap[selectedPaymentMethod]?.icon || (
-                      <CreditCard />
-                    )}
-                  </Container>
-                  <Text>
-                    {isStripeLike(selectedPaymentMethod) && cardBrand
+                  {isManual(activeSession?.provider_id)
+                    ? "Cash collected on delivery"
+                    : isStripeLike(selectedPaymentMethod) && cardBrand
                       ? cardBrand
                       : "Another step will appear"}
-                  </Text>
                 </div>
               </div>
             </div>
           ) : paidByGiftcard ? (
             <div className="flex flex-col w-1/3">
-              <Text className="txt-medium-plus text-ui-fg-base mb-1">
+              <p className="font-mono text-label-sm uppercase tracking-label text-ash mb-1">
                 Payment method
-              </Text>
-              <Text
-                className="txt-medium text-ui-fg-subtle"
+              </p>
+              <p
+                className="font-body text-body-sm text-ink"
                 data-testid="payment-method-summary"
               >
                 Gift card
-              </Text>
+              </p>
             </div>
           ) : null}
         </div>
       </div>
-      <Divider className="mt-8" />
     </div>
   )
 }

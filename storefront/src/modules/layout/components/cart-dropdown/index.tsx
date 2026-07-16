@@ -6,9 +6,8 @@ import {
   PopoverPanel,
   Transition,
 } from "@headlessui/react"
-import { convertToLocale } from "@lib/util/money"
+import { convertToLocale, formatNPR } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
-import { Button } from "@medusajs/ui"
 import DeleteButton from "@modules/common/components/delete-button"
 import LineItemOptions from "@modules/common/components/line-item-options"
 import LineItemPrice from "@modules/common/components/line-item-price"
@@ -37,6 +36,16 @@ const CartDropdown = ({
 
   const subtotal = cartState?.subtotal ?? 0
   const itemRef = useRef<number>(totalItems || 0)
+
+  // All NPR prices go through formatNPR (R4); convertToLocale stays as the
+  // non-NPR fallback (§5.3).
+  const formatAmount = (amount: number) =>
+    cartState?.currency_code?.toLowerCase() === "npr"
+      ? formatNPR(amount)
+      : convertToLocale({
+          amount,
+          currency_code: cartState?.currency_code ?? "npr",
+        })
 
   const timedOpen = () => {
     open()
@@ -82,10 +91,15 @@ const CartDropdown = ({
       <Popover className="relative h-full">
         <PopoverButton className="h-full">
           <LocalizedClientLink
-            className="hover:text-ui-fg-base"
+            className="flex items-center gap-2 font-body text-xs font-semibold uppercase tracking-wide text-paper/80 hover:text-paper transition-colors"
             href="/cart"
             data-testid="nav-cart-link"
-          >{`Cart (${totalItems})`}</LocalizedClientLink>
+          >
+            <span>Cart</span>
+            <span className="min-w-5 h-5 rounded-full bg-red text-paper text-[11px] font-bold grid place-items-center px-1">
+              {totalItems}
+            </span>
+          </LocalizedClientLink>
         </PopoverButton>
         <Transition
           show={cartDropdownOpen}
@@ -99,15 +113,17 @@ const CartDropdown = ({
         >
           <PopoverPanel
             static
-            className="hidden small:block absolute top-[calc(100%+1px)] right-0 bg-white border-x border-b border-gray-200 w-[420px] text-ui-fg-base"
+            className="hidden small:block absolute top-[calc(100%+1px)] right-0 bg-paper text-ink border border-line w-[420px]"
             data-testid="nav-cart-dropdown"
           >
-            <div className="p-4 flex items-center justify-center">
-              <h3 className="text-large-semi">Cart</h3>
+            <div className="px-4 py-4 border-b border-line">
+              <h3 className="font-display text-xl uppercase tracking-tight text-ink">
+                Your bag
+              </h3>
             </div>
             {cartState && cartState.items?.length ? (
               <>
-                <div className="overflow-y-scroll max-h-[402px] px-4 grid grid-cols-1 gap-y-8 no-scrollbar p-px">
+                <div className="overflow-y-scroll max-h-[402px] px-4 grid grid-cols-1 gap-y-8 no-scrollbar py-4">
                   {cartState.items
                     .sort((a, b) => {
                       return (a.created_at ?? "") > (b.created_at ?? "")
@@ -122,7 +138,7 @@ const CartDropdown = ({
                       >
                         <LocalizedClientLink
                           href={`/products/${item.product_handle}`}
-                          className="w-24"
+                          className="w-24 bg-fog rounded-base overflow-hidden"
                         >
                           <Thumbnail
                             thumbnail={item.thumbnail}
@@ -134,7 +150,7 @@ const CartDropdown = ({
                           <div className="flex flex-col flex-1">
                             <div className="flex items-start justify-between">
                               <div className="flex flex-col overflow-ellipsis whitespace-nowrap mr-4 w-[180px]">
-                                <h3 className="text-base-regular overflow-hidden text-ellipsis">
+                                <h3 className="font-body text-sm font-semibold uppercase leading-tight overflow-hidden text-ellipsis">
                                   <LocalizedClientLink
                                     href={`/products/${item.product_handle}`}
                                     data-testid="product-link"
@@ -148,13 +164,14 @@ const CartDropdown = ({
                                   data-value={item.variant}
                                 />
                                 <span
+                                  className="font-mono text-label-sm uppercase tracking-label text-ash mt-1"
                                   data-testid="cart-item-quantity"
                                   data-value={item.quantity}
                                 >
                                   Quantity: {item.quantity}
                                 </span>
                               </div>
-                              <div className="flex justify-end">
+                              <div className="flex justify-end font-body font-bold text-ink">
                                 <LineItemPrice
                                   item={item}
                                   style="tight"
@@ -165,7 +182,7 @@ const CartDropdown = ({
                           </div>
                           <DeleteButton
                             id={item.id}
-                            className="mt-1"
+                            className="mt-1 text-red hover:text-red-deep"
                             data-testid="cart-item-remove-button"
                           >
                             Remove
@@ -174,47 +191,72 @@ const CartDropdown = ({
                       </div>
                     ))}
                 </div>
-                <div className="p-4 flex flex-col gap-y-4 text-small-regular">
-                  <div className="flex items-center justify-between">
-                    <span className="text-ui-fg-base font-semibold">
+                <div className="p-4 flex flex-col gap-y-4 border-t border-line">
+                  <div className="flex items-baseline justify-between">
+                    <span className="font-mono text-label-sm uppercase tracking-label text-ash">
                       Subtotal{" "}
-                      <span className="font-normal">(excl. taxes)</span>
+                      <span className="normal-case tracking-normal">
+                        (incl. VAT)
+                      </span>
                     </span>
                     <span
-                      className="text-large-semi"
+                      className="font-body font-bold text-ink"
                       data-testid="cart-subtotal"
                       data-value={subtotal}
                     >
-                      {convertToLocale({
-                        amount: subtotal,
-                        currency_code: cartState.currency_code,
-                      })}
+                      {formatAmount(subtotal)}
                     </span>
                   </div>
-                  <LocalizedClientLink href="/cart" passHref>
-                    <Button
-                      className="w-full"
-                      size="large"
-                      data-testid="go-to-cart-button"
+                  <LocalizedClientLink
+                    href="/cart"
+                    className="group flex w-full items-center justify-center gap-3 rounded-full bg-red px-7 py-3.5 font-body text-sm font-semibold uppercase tracking-wide text-paper transition-transform duration-150 ease-out hover:-translate-y-0.5 hover:bg-red-deep active:translate-y-0"
+                    data-testid="go-to-cart-button"
+                  >
+                    View bag
+                    <span
+                      aria-hidden="true"
+                      className="transition-transform duration-150 group-hover:translate-x-1"
                     >
-                      Go to cart
-                    </Button>
+                      →
+                    </span>
+                  </LocalizedClientLink>
+                  <LocalizedClientLink
+                    href="/checkout?step=address"
+                    className="group flex w-full items-center justify-center gap-3 rounded-full border border-ink bg-transparent px-7 py-3 font-body text-sm font-semibold uppercase tracking-wide text-ink transition-colors duration-150 ease-out hover:bg-ink hover:text-paper"
+                    data-testid="go-to-checkout-button"
+                  >
+                    Checkout
+                    <span
+                      aria-hidden="true"
+                      className="transition-transform duration-150 group-hover:translate-x-1"
+                    >
+                      →
+                    </span>
                   </LocalizedClientLink>
                 </div>
               </>
             ) : (
               <div>
-                <div className="flex py-16 flex-col gap-y-4 items-center justify-center">
-                  <div className="bg-gray-900 text-small-regular flex items-center justify-center w-6 h-6 rounded-full text-white">
-                    <span>0</span>
-                  </div>
-                  <span>Your shopping bag is empty.</span>
+                <div className="flex py-16 flex-col gap-y-5 items-center justify-center px-6 text-center">
+                  <p className="font-display text-2xl uppercase tracking-tight text-ink">
+                    Your bag is empty
+                  </p>
+                  <p className="font-body text-body-sm text-ash">
+                    Time to restock.
+                  </p>
                   <div>
-                    <LocalizedClientLink href="/store">
-                      <>
-                        <span className="sr-only">Go to all products page</span>
-                        <Button onClick={close}>Explore products</Button>
-                      </>
+                    <LocalizedClientLink
+                      href="/store"
+                      onClick={close}
+                      className="group inline-flex items-center gap-3 rounded-full bg-red px-7 py-3.5 font-body text-sm font-semibold uppercase tracking-wide text-paper transition-transform duration-150 ease-out hover:-translate-y-0.5 hover:bg-red-deep active:translate-y-0"
+                    >
+                      <span>Explore products</span>
+                      <span
+                        aria-hidden="true"
+                        className="transition-transform duration-150 group-hover:translate-x-1"
+                      >
+                        →
+                      </span>
                     </LocalizedClientLink>
                   </div>
                 </div>

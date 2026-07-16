@@ -1,8 +1,6 @@
 "use client"
 
-import Back from "@modules/common/icons/back"
-import FastDelivery from "@modules/common/icons/fast-delivery"
-import Refresh from "@modules/common/icons/refresh"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 import Accordion from "./accordion"
 import { HttpTypes } from "@medusajs/types"
@@ -14,18 +12,30 @@ type ProductTabsProps = {
 const ProductTabs = ({ product }: ProductTabsProps) => {
   const tabs = [
     {
-      label: "Product Information",
-      component: <ProductInfoTab product={product} />,
+      label: "Description",
+      component: <DescriptionTab product={product} />,
     },
     {
-      label: "Shipping & Returns",
-      component: <ShippingInfoTab />,
+      label: "How to use",
+      component: <HowToUseTab />,
+    },
+    {
+      label: "Ingredients",
+      component: <IngredientsTab />,
+    },
+    {
+      label: "Delivery & COD",
+      component: <DeliveryTab />,
+    },
+    {
+      label: "Authenticity",
+      component: <AuthenticityTab />,
     },
   ]
 
   return (
     <div className="w-full">
-      <Accordion type="multiple">
+      <Accordion type="multiple" defaultValue={["Description"]}>
         {tabs.map((tab, i) => (
           <Accordion.Item
             key={i}
@@ -41,79 +51,94 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
   )
 }
 
-const ProductInfoTab = ({ product }: ProductTabsProps) => {
+const proseClass =
+  "font-body text-body-sm text-ash leading-relaxed whitespace-pre-line"
+
+const DescriptionTab = ({ product }: ProductTabsProps) => {
   return (
-    <div className="text-small-regular py-8">
-      <div className="grid grid-cols-2 gap-x-8">
-        <div className="flex flex-col gap-y-4">
-          <div>
-            <span className="font-semibold">Material</span>
-            <p>{product.material ? product.material : "-"}</p>
-          </div>
-          <div>
-            <span className="font-semibold">Country of origin</span>
-            <p>{product.origin_country ? product.origin_country : "-"}</p>
-          </div>
-          <div>
-            <span className="font-semibold">Type</span>
-            <p>{product.type ? product.type.value : "-"}</p>
-          </div>
-        </div>
-        <div className="flex flex-col gap-y-4">
-          <div>
-            <span className="font-semibold">Weight</span>
-            <p>{product.weight ? `${product.weight} g` : "-"}</p>
-          </div>
-          <div>
-            <span className="font-semibold">Dimensions</span>
-            <p>
-              {product.length && product.width && product.height
-                ? `${product.length}L x ${product.width}W x ${product.height}H`
-                : "-"}
-            </p>
-          </div>
-        </div>
-      </div>
+    <div className="py-6">
+      <p className={proseClass} data-testid="product-tab-description">
+        {product.description ||
+          "Authentic sports nutrition, sourced from authorized distributors and delivered across Nepal. Full nutritional information and directions are printed on the sealed product label."}
+      </p>
     </div>
   )
 }
 
-const ShippingInfoTab = () => {
+const HowToUseTab = () => {
   return (
-    <div className="text-small-regular py-8">
-      <div className="grid grid-cols-1 gap-y-8">
-        <div className="flex items-start gap-x-2">
-          <FastDelivery />
-          <div>
-            <span className="font-semibold">Fast delivery</span>
-            <p className="max-w-sm">
-              Your package will arrive in 3-5 business days at your pick up
-              location or in the comfort of your home.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-start gap-x-2">
-          <Refresh />
-          <div>
-            <span className="font-semibold">Simple exchanges</span>
-            <p className="max-w-sm">
-              Is the fit not quite right? No worries - we&apos;ll exchange your
-              product for a new one.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-start gap-x-2">
-          <Back />
-          <div>
-            <span className="font-semibold">Easy returns</span>
-            <p className="max-w-sm">
-              Just return your product and we&apos;ll refund your money. No
-              questions asked – we&apos;ll do our best to make sure your return
-              is hassle-free.
-            </p>
-          </div>
-        </div>
+    <div className="flex flex-col gap-y-3 py-6">
+      <p className={proseClass}>
+        Add one serving (see the scoop and label for the exact amount) to
+        200–300 ml of cold water or milk. Shake or blend for 20–30 seconds until
+        fully mixed.
+      </p>
+      <p className={proseClass}>
+        Best taken post-workout or between meals to hit your daily protein
+        target. Do not exceed the serving size stated on the label. Keep sealed,
+        store in a cool, dry place, and use within the shelf life printed on the
+        pack.
+      </p>
+    </div>
+  )
+}
+
+const IngredientsTab = () => {
+  return (
+    <div className="flex flex-col gap-y-3 py-6">
+      <p className={proseClass}>
+        The full ingredient list, allergen information, and per-serving
+        nutritional values are printed on the physical product label.
+        Formulations can vary by flavour and batch, so always read the label
+        before use.
+      </p>
+      <p className={proseClass}>
+        Have a question about a specific ingredient or allergen? Message us on
+        WhatsApp before you buy and we&apos;ll confirm the details for your
+        chosen flavour.
+      </p>
+    </div>
+  )
+}
+
+const DeliveryTab = () => {
+  return (
+    <div className="flex flex-col gap-y-4 py-6">
+      <div className="flex flex-col gap-y-1">
+        <span className="font-mono text-label-sm uppercase tracking-label text-ink">
+          Inside Kathmandu Valley
+        </span>
+        <span className={proseClass}>Delivered in 1–2 days • Pay on delivery.</span>
       </div>
+      <div className="flex flex-col gap-y-1">
+        <span className="font-mono text-label-sm uppercase tracking-label text-ink">
+          Outside Valley
+        </span>
+        <span className={proseClass}>Delivered in 3–5 days • Pay on delivery.</span>
+      </div>
+      <p className={proseClass}>
+        Cash on Delivery is available nationwide — pay the rider in cash when
+        your order arrives, no advance payment needed. Flat-rate shipping is
+        calculated at checkout based on your delivery zone.
+      </p>
+    </div>
+  )
+}
+
+const AuthenticityTab = () => {
+  return (
+    <div className="flex flex-col gap-y-3 py-6">
+      <p className={proseClass}>
+        Every tub is sourced directly from authorized distributors — never
+        grey-market or parallel imports. Products arrive sealed, are verified on
+        intake, and stored properly until they reach your door.
+      </p>
+      <LocalizedClientLink
+        href="/authenticity"
+        className="w-fit font-mono text-label-sm uppercase tracking-label text-red transition-colors hover:text-red-deep"
+      >
+        Read our authenticity guarantee →
+      </LocalizedClientLink>
     </div>
   )
 }

@@ -8,6 +8,11 @@ import NativeSelect from "@modules/common/components/native-select"
 import AccountInfo from "../account-info"
 import { HttpTypes } from "@medusajs/types"
 import { addCustomerAddress, updateCustomerAddress } from "@lib/data/customer"
+import {
+  NEPAL_PROVINCES,
+  NEPAL_PHONE_PATTERN,
+  NEPAL_PHONE_TITLE,
+} from "@modules/account/utils/np-address"
 
 type MyInformationProps = {
   customer: HttpTypes.StoreCustomer
@@ -72,19 +77,22 @@ const ProfileBillingAddress: React.FC<MyInformationProps> = ({
       )?.label || billingAddress.country_code?.toUpperCase()
 
     return (
-      <div className="flex flex-col font-semibold" data-testid="current-info">
+      <div
+        className="flex flex-col font-body text-body-sm text-ink font-semibold text-right"
+        data-testid="current-info"
+      >
         <span>
           {billingAddress.first_name} {billingAddress.last_name}
         </span>
-        <span>{billingAddress.company}</span>
-        <span>
+        <span className="font-normal text-ash">
           {billingAddress.address_1}
           {billingAddress.address_2 ? `, ${billingAddress.address_2}` : ""}
         </span>
-        <span>
-          {billingAddress.postal_code}, {billingAddress.city}
+        <span className="font-normal text-ash">
+          {billingAddress.city}
+          {billingAddress.postal_code ? `, ${billingAddress.postal_code}` : ""}
         </span>
-        <span>{country}</span>
+        <span className="font-normal text-ash">{country}</span>
       </div>
     )
   }, [billingAddress, regionOptions])
@@ -118,58 +126,67 @@ const ProfileBillingAddress: React.FC<MyInformationProps> = ({
             />
           </div>
           <Input
-            label="Company"
-            name="company"
-            defaultValue={billingAddress?.company || undefined}
-            data-testid="billing-company-input"
-          />
-          <Input
-            label="Phone"
+            label="Phone (98XXXXXXXX)"
             name="phone"
-            type="phone"
-            autoComplete="phone"
+            type="tel"
+            autoComplete="tel"
             required
+            pattern={NEPAL_PHONE_PATTERN}
+            title={NEPAL_PHONE_TITLE}
+            inputMode="numeric"
+            maxLength={10}
             defaultValue={billingAddress?.phone ?? customer?.phone ?? ""}
             data-testid="billing-phone-input"
           />
+          <NativeSelect
+            name="province"
+            placeholder="Province"
+            defaultValue={billingAddress?.province || undefined}
+            data-testid="billing-province-select"
+          >
+            {NEPAL_PROVINCES.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </NativeSelect>
           <Input
-            label="Address"
+            label="Municipality / City & District"
+            name="city"
+            defaultValue={billingAddress?.city || undefined}
+            required
+            data-testid="billing-city-input"
+          />
+          <Input
+            label="Ward No. & Area / Tole"
+            name="address_2"
+            defaultValue={billingAddress?.address_2 || undefined}
+            data-testid="billing-address-2-input"
+          />
+          <Input
+            label="Street / Landmark"
             name="address_1"
             defaultValue={billingAddress?.address_1 || undefined}
             required
             data-testid="billing-address-1-input"
           />
-          <Input
-            label="Apartment, suite, etc."
-            name="address_2"
-            defaultValue={billingAddress?.address_2 || undefined}
-            data-testid="billing-address-2-input"
-          />
           <div className="grid grid-cols-[144px_1fr] gap-x-2">
             <Input
-              label="Postal code"
+              label="Postal code (optional)"
               name="postal_code"
               defaultValue={billingAddress?.postal_code || undefined}
-              required
               data-testid="billing-postcal-code-input"
             />
             <Input
-              label="City"
-              name="city"
-              defaultValue={billingAddress?.city || undefined}
-              required
-              data-testid="billing-city-input"
+              label="Company (optional)"
+              name="company"
+              defaultValue={billingAddress?.company || undefined}
+              data-testid="billing-company-input"
             />
           </div>
-          <Input
-            label="Province"
-            name="province"
-            defaultValue={billingAddress?.province || undefined}
-            data-testid="billing-province-input"
-          />
           <NativeSelect
             name="country_code"
-            defaultValue={billingAddress?.country_code || undefined}
+            defaultValue={billingAddress?.country_code || "np"}
             required
             data-testid="billing-country-code-select"
           >

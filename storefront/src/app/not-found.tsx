@@ -1,30 +1,62 @@
-import { ArrowUpRightMini } from "@medusajs/icons"
-import { Text } from "@medusajs/ui"
 import { Metadata } from "next"
 import Link from "next/link"
 
 export const metadata: Metadata = {
-  title: "404",
-  description: "Something went wrong",
+  title: "404 — Page not found",
+  description: "The page you tried to access does not exist.",
 }
+
+// Root-level 404 lives outside the [countryCode] segment, so it uses plain
+// next/link (the middleware redirects bare paths to the active region).
+const pillBase =
+  "group inline-flex items-center gap-3 rounded-full px-7 py-3.5 font-body text-sm font-semibold uppercase tracking-wide transition-transform duration-150 ease-out hover:-translate-y-0.5 active:translate-y-0 will-change-transform"
+
+const Arrow = () => (
+  <span className="grid h-5 w-5 place-items-center transition-transform duration-150 ease-out group-hover:translate-x-1">
+    <svg
+      viewBox="0 0 16 16"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+    >
+      <path d="M4 12L12 4M6 4h6v6" strokeLinecap="square" />
+    </svg>
+  </span>
+)
 
 export default function NotFound() {
   return (
-    <div className="flex flex-col gap-4 items-center justify-center min-h-[calc(100vh-64px)]">
-      <h1 className="text-2xl-semi text-ui-fg-base">Page not found</h1>
-      <p className="text-small-regular text-ui-fg-base">
-        The page you tried to access does not exist.
+    <div className="flex min-h-[calc(100vh-64px)] flex-col items-center justify-center gap-6 bg-paper px-5 py-24 text-center">
+      <p className="font-mono text-label uppercase tracking-label text-red">
+        Error 404
       </p>
-      <Link
-        className="flex gap-x-1 items-center group"
-        href="/"
-      >
-        <Text className="text-ui-fg-interactive">Go to frontpage</Text>
-        <ArrowUpRightMini
-          className="group-hover:rotate-45 ease-in-out duration-150"
-          color="var(--fg-interactive)"
-        />
-      </Link>
+      <h1 className="font-display text-display-1 uppercase leading-[0.9] text-ink">
+        404
+        <br />
+        Page not found.
+      </h1>
+      <p className="max-w-md font-body text-body text-ash">
+        This page skipped leg day and disappeared. The rest of the store is
+        still lifting.
+      </p>
+      <div className="mt-2 flex flex-wrap justify-center gap-3">
+        <Link
+          href="/store"
+          className={`${pillBase} bg-red text-paper hover:bg-red-deep`}
+        >
+          Shop all
+          <Arrow />
+        </Link>
+        <Link
+          href="/"
+          className={`${pillBase} border border-ink bg-transparent text-ink hover:bg-ink hover:text-paper`}
+        >
+          Go home
+          <Arrow />
+        </Link>
+      </div>
     </div>
   )
 }

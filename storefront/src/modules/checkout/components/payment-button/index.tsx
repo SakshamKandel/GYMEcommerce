@@ -3,14 +3,55 @@
 import { isManual, isStripeLike } from "@lib/constants"
 import { placeOrder } from "@lib/data/cart"
 import { HttpTypes } from "@medusajs/types"
-import { Button } from "@medusajs/ui"
+import { Button, clx } from "@medusajs/ui"
 import { useElements, useStripe } from "@stripe/react-stripe-js"
+import Spinner from "@modules/common/icons/spinner"
 import React, { useState } from "react"
 import ErrorMessage from "../error-message"
 
 type PaymentButtonProps = {
   cart: HttpTypes.StoreCart
   "data-testid": string
+}
+
+// Shared red pill for the terminal "Place order" CTA (02 §5.1). Native button
+// so the accent red is guaranteed regardless of the @medusajs/ui token retune.
+const RedOrderButton = ({
+  onClick,
+  disabled,
+  submitting,
+  "data-testid": dataTestId,
+}: {
+  onClick: () => void
+  disabled?: boolean
+  submitting?: boolean
+  "data-testid"?: string
+}) => {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled || submitting}
+      data-testid={dataTestId}
+      className={clx(
+        "group inline-flex w-full items-center justify-center gap-3 rounded-full px-7 py-4",
+        "bg-red text-paper font-body text-sm font-semibold uppercase tracking-wide",
+        "transition-all duration-150 ease-out hover:bg-red-deep hover:-translate-y-0.5 active:translate-y-0",
+        "disabled:opacity-50 disabled:pointer-events-none"
+      )}
+    >
+      {submitting ? (
+        <Spinner />
+      ) : (
+        <>
+          Place order (COD)
+          <span className="transition-transform duration-150 ease-out group-hover:translate-x-1">
+            →
+          </span>
+        </>
+      )}
+    </button>
+  )
 }
 
 const PaymentButton: React.FC<PaymentButtonProps> = ({
@@ -40,7 +81,11 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
         <ManualTestPaymentButton notReady={notReady} data-testid={dataTestId} />
       )
     default:
-      return <Button disabled>Select a payment method</Button>
+      return (
+        <Button disabled className="uppercase tracking-wide">
+          Select a payment method
+        </Button>
+      )
   }
 }
 
@@ -134,15 +179,12 @@ const StripePaymentButton = ({
 
   return (
     <>
-      <Button
-        disabled={disabled || notReady}
+      <RedOrderButton
         onClick={handlePayment}
-        size="large"
-        isLoading={submitting}
+        disabled={disabled || notReady}
+        submitting={submitting}
         data-testid={dataTestId}
-      >
-        Place order
-      </Button>
+      />
       <ErrorMessage
         error={errorMessage}
         data-testid="stripe-payment-error-message"
@@ -151,7 +193,13 @@ const StripePaymentButton = ({
   )
 }
 
-const ManualTestPaymentButton = ({ notReady }: { notReady: boolean }) => {
+const ManualTestPaymentButton = ({
+  notReady,
+  "data-testid": dataTestId,
+}: {
+  notReady: boolean
+  "data-testid"?: string
+}) => {
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -173,15 +221,12 @@ const ManualTestPaymentButton = ({ notReady }: { notReady: boolean }) => {
 
   return (
     <>
-      <Button
-        disabled={notReady}
-        isLoading={submitting}
+      <RedOrderButton
         onClick={handlePayment}
-        size="large"
-        data-testid="submit-order-button"
-      >
-        Place order
-      </Button>
+        disabled={notReady}
+        submitting={submitting}
+        data-testid={dataTestId || "submit-order-button"}
+      />
       <ErrorMessage
         error={errorMessage}
         data-testid="manual-payment-error-message"

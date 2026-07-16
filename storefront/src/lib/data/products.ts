@@ -7,6 +7,15 @@ import { SortOptions } from "@modules/store/components/refinement-list/sort-prod
 import { getAuthHeaders, getCacheOptions } from "./cookies"
 import { getRegion, retrieveRegion } from "./regions"
 
+/**
+ * Lists products from `/store/products`.
+ *
+ * `queryParams` passes straight through to the Store API, so callers can send
+ * `q` (keyword search over title/description) and array filters
+ * (`collection_id[]`, `category_id[]`) — the launch search/facet system relies
+ * on this passthrough.
+ * // TODO: swap to Meilisearch once the post-launch criteria in 01 §8.4 are met.
+ */
 export const listProducts = async ({
   pageParam = 1,
   queryParams,
@@ -63,7 +72,7 @@ export const listProducts = async ({
           offset,
           region_id: region?.id,
           fields:
-            "*variants.calculated_price,+variants.inventory_quantity,*variants.images,+metadata,+tags,",
+            "*variants.calculated_price,+variants.inventory_quantity,*variants.images,+metadata,+tags,*collection,",
           ...queryParams,
         },
         headers,
@@ -86,23 +95,45 @@ export const listProducts = async ({
 }
 
 /**
+ * Returns the cheapest calculated variant amount for a product — the same
+ * amount the product card displays ("from" price).
+ */
+const getCheapestAmount = (product: HttpTypes.StoreProduct): number | null => {
+  const amounts = (product.variants ?? [])
+    .map((variant: any) => variant?.calculated_price?.calculated_amount)
+    .filter((amount: any): amount is number => typeof amount === "number")
+
+  return amounts.length ? Math.min(...amounts) : null
+}
+
+/**
  * This will fetch 100 products to the Next.js cache and sort them based on the sortBy parameter.
  * It will then return the paginated products based on the page and limit parameters.
+ *
+ * `minPrice` / `maxPrice` (whole NPR rupees) implement the price facet as a
+ * client-side clamp on `calculated_price` within the fetched window — approach
+ * (a) from the master plan (§2, "Price facet"); the launch catalog fits in a
+ * single 100-product fetch, so counts and pagination stay consistent.
+ * // TODO price-facet server-side (price-range query / Meilisearch filter post-launch)
  */
 export const listProductsWithSort = async ({
   page = 0,
   queryParams,
   sortBy = "created_at",
   countryCode,
+  minPrice,
+  maxPrice,
 }: {
   page?: number
-  queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductParams
+  queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductListParams
   sortBy?: SortOptions
   countryCode: string
+  minPrice?: number
+  maxPrice?: number
 }): Promise<{
   response: { products: HttpTypes.StoreProduct[]; count: number }
   nextPage: number | null
-  queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductParams
+  queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductListParams
 }> => {
   const limit = queryParams?.limit || 12
 
@@ -119,16 +150,39 @@ export const listProductsWithSort = async ({
 
   const sortedProducts = sortProducts(products, sortBy)
 
+  const hasPriceFilter =
+    typeof minPrice === "number" || typeof maxPrice === "number"
+
+  const filteredProducts = hasPriceFilter
+    ? sortedProducts.filter((product) => {
+        const amount = getCheapestAmount(product)
+
+        if (amount === null) {
+          return false
+        }
+        if (typeof minPrice === "number" && amount < minPrice) {
+          return false
+        }
+        if (typeof maxPrice === "number" && amount > maxPrice) {
+          return false
+        }
+
+        return true
+      })
+    : sortedProducts
+
+  const resultCount = hasPriceFilter ? filteredProducts.length : count
+
   const pageParam = (page - 1) * limit
 
-  const nextPage = count > pageParam + limit ? pageParam + limit : null
+  const nextPage = resultCount > pageParam + limit ? pageParam + limit : null
 
-  const paginatedProducts = sortedProducts.slice(pageParam, pageParam + limit)
+  const paginatedProducts = filteredProducts.slice(pageParam, pageParam + limit)
 
   return {
     response: {
       products: paginatedProducts,
-      count,
+      count: resultCount,
     },
     nextPage,
     queryParams,

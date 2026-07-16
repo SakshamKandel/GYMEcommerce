@@ -1,4 +1,3 @@
-import { Heading, Text } from "@medusajs/ui"
 import TransferActions from "@modules/order/components/transfer-actions"
 import TransferImage from "@modules/order/components/transfer-image"
 
@@ -10,27 +9,31 @@ export default async function TransferPage({
   const { id, token } = params
 
   return (
-    <div className="flex flex-col gap-y-4 items-start w-2/5 mx-auto mt-10 mb-20">
+    <div className="content-container flex flex-col gap-y-6 items-start max-w-lg mx-auto mt-16 mb-24">
       <TransferImage />
       <div className="flex flex-col gap-y-6">
-        <Heading level="h1" className="text-xl text-zinc-900">
-          Transfer request for order {id}
-        </Heading>
-        <Text className="text-zinc-600">
-          You&#39;ve received a request to transfer ownership of your order ({id}).
-          If you agree to this request, you can approve the transfer by clicking
-          the button below.
-        </Text>
-        <div className="w-full h-px bg-zinc-200" />
-        <Text className="text-zinc-600">
-          If you accept, the new owner will take over all responsibilities and
+        <div>
+          <p className="font-mono text-label uppercase tracking-label text-red mb-2">
+            Order transfer
+          </p>
+          <h1 className="font-display text-3xl uppercase text-ink leading-none">
+            Transfer request for order {id}
+          </h1>
+        </div>
+        <p className="font-body text-body-sm text-ash">
+          You&apos;ve received a request to transfer ownership of order ({id}).
+          If you agree to this request, approve the transfer below.
+        </p>
+        <div className="h-px w-full bg-line" />
+        <p className="font-body text-body-sm text-ash">
+          If you accept, the new owner takes over all responsibilities and
           permissions associated with this order.
-        </Text>
-        <Text className="text-zinc-600">
-          If you do not recognize this request or wish to retain ownership, no
-          further action is required.
-        </Text>
-        <div className="w-full h-px bg-zinc-200" />
+        </p>
+        <p className="font-body text-body-sm text-ash">
+          If you do not recognize this request or wish to retain ownership,
+          no further action is required.
+        </p>
+        <div className="h-px w-full bg-line" />
         <TransferActions id={id} token={token} />
       </div>
     </div>

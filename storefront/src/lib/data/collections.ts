@@ -51,7 +51,8 @@ export const getCollectionByHandle = async (
 
   return sdk.client
     .fetch<HttpTypes.StoreCollectionListResponse>(`/store/collections`, {
-      query: { handle, fields: "*products" },
+      // +metadata → brand pages read metadata.description / metadata.banner_image (R12)
+      query: { handle, fields: "*products,+metadata" },
       next,
       cache: "force-cache",
     })

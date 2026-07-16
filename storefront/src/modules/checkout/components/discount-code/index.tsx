@@ -4,7 +4,7 @@ import { Badge, Heading, Input, Label, Text } from "@medusajs/ui"
 import React from "react"
 
 import { applyPromotions } from "@lib/data/cart"
-import { convertToLocale } from "@lib/util/money"
+import { convertToLocale, formatNPR } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
 import Trash from "@modules/common/icons/trash"
 import ErrorMessage from "../error-message"
@@ -56,17 +56,17 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
   }
 
   return (
-    <div className="w-full bg-white flex flex-col">
+    <div className="w-full flex flex-col">
       <div className="txt-medium">
-        <form action={(a) => addPromotionCode(a)} className="w-full mb-5">
-          <Label className="flex gap-x-1 my-2 items-center">
+        <form action={(a) => addPromotionCode(a)} className="w-full">
+          <Label className="flex gap-x-1 items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
               type="button"
-              className="txt-medium text-ui-fg-interactive hover:text-ui-fg-interactive-hover"
+              className="font-mono text-label-sm uppercase tracking-label text-red hover:text-red-deep"
               data-testid="add-discount-button"
             >
-              Add Promotion Code(s)
+              Add promotion code
             </button>
 
             {/* <Tooltip content="You can add multiple promotion codes">
@@ -117,10 +117,7 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
                   >
                     <Text className="flex gap-x-1 items-baseline txt-small-plus w-4/5 pr-1">
                       <span className="truncate" data-testid="discount-code">
-                        <Badge
-                          color={promotion.is_automatic ? "green" : "grey"}
-                          size="small"
-                        >
+                        <Badge color="grey" size="small">
                           {promotion.code}
                         </Badge>{" "}
                         (
@@ -131,12 +128,18 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
                               {promotion.application_method.type ===
                               "percentage"
                                 ? `${promotion.application_method.value}%`
-                                : convertToLocale({
-                                    amount: +promotion.application_method.value,
-                                    currency_code:
-                                      promotion.application_method
-                                        .currency_code,
-                                  })}
+                                : promotion.application_method.currency_code?.toLowerCase() ===
+                                    "npr"
+                                  ? formatNPR(
+                                      +promotion.application_method.value
+                                    )
+                                  : convertToLocale({
+                                      amount:
+                                        +promotion.application_method.value,
+                                      currency_code:
+                                        promotion.application_method
+                                          .currency_code,
+                                    })}
                             </>
                           )}
                         )

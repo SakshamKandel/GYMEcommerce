@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState, useActionState } from "react"
 import { PencilSquare as Edit, Trash } from "@medusajs/icons"
-import { Button, Heading, Text, clx } from "@medusajs/ui"
+import { clx } from "@medusajs/ui"
 
 import useToggleState from "@lib/hooks/use-toggle-state"
 import CountrySelect from "@modules/checkout/components/country-select"
 import Input from "@modules/common/components/input"
+import NativeSelect from "@modules/common/components/native-select"
 import Modal from "@modules/common/components/modal"
 import Spinner from "@modules/common/icons/spinner"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
@@ -15,6 +16,11 @@ import {
   deleteCustomerAddress,
   updateCustomerAddress,
 } from "@lib/data/customer"
+import {
+  NEPAL_PROVINCES,
+  NEPAL_PHONE_PATTERN,
+  NEPAL_PHONE_TITLE,
+} from "@modules/account/utils/np-address"
 
 type EditAddressProps = {
   region: HttpTypes.StoreRegion
@@ -65,57 +71,59 @@ const EditAddress: React.FC<EditAddressProps> = ({
     <>
       <div
         className={clx(
-          "border rounded-rounded p-5 min-h-[220px] h-full w-full flex flex-col justify-between transition-colors",
+          "flex min-h-[220px] h-full w-full flex-col justify-between border border-line p-5 transition-colors",
           {
-            "border-gray-900": isActive,
+            "border-ink": isActive,
           }
         )}
         data-testid="address-container"
       >
         <div className="flex flex-col">
-          <Heading
-            className="text-left text-base-semi"
+          <p
+            className="font-body text-sm font-semibold uppercase tracking-wide text-ink"
             data-testid="address-name"
           >
             {address.first_name} {address.last_name}
-          </Heading>
+          </p>
           {address.company && (
-            <Text
-              className="txt-compact-small text-ui-fg-base"
+            <p
+              className="font-body text-body-sm text-ash"
               data-testid="address-company"
             >
               {address.company}
-            </Text>
+            </p>
           )}
-          <Text className="flex flex-col text-left text-base-regular mt-2">
+          <div className="flex flex-col gap-0.5 mt-3 font-body text-body-sm text-ash">
             <span data-testid="address-address">
               {address.address_1}
               {address.address_2 && <span>, {address.address_2}</span>}
             </span>
             <span data-testid="address-postal-city">
-              {address.postal_code}, {address.city}
+              {address.city}
+              {address.postal_code && `, ${address.postal_code}`}
             </span>
             <span data-testid="address-province-country">
               {address.province && `${address.province}, `}
               {address.country_code?.toUpperCase()}
             </span>
-          </Text>
+            {address.phone && <span>{address.phone}</span>}
+          </div>
         </div>
-        <div className="flex items-center gap-x-4">
+        <div className="flex items-center gap-x-5 mt-4">
           <button
-            className="text-small-regular text-ui-fg-base flex items-center gap-x-2"
+            className="flex items-center gap-x-2 font-mono text-label-sm uppercase tracking-label text-ink hover:text-red"
             onClick={open}
             data-testid="address-edit-button"
           >
-            <Edit />
+            <Edit className="h-3.5 w-3.5" />
             Edit
           </button>
           <button
-            className="text-small-regular text-ui-fg-base flex items-center gap-x-2"
+            className="flex items-center gap-x-2 font-mono text-label-sm uppercase tracking-label text-ash hover:text-red"
             onClick={removeAddress}
             data-testid="address-delete-button"
           >
-            {removing ? <Spinner /> : <Trash />}
+            {removing ? <Spinner /> : <Trash className="h-3.5 w-3.5" />}
             Remove
           </button>
         </div>
@@ -123,7 +131,9 @@ const EditAddress: React.FC<EditAddressProps> = ({
 
       <Modal isOpen={state} close={close} data-testid="edit-address-modal">
         <Modal.Title>
-          <Heading className="mb-2">Edit address</Heading>
+          <span className="font-display text-2xl uppercase text-ink">
+            Edit address
+          </span>
         </Modal.Title>
         <form action={formAction}>
           <input type="hidden" name="addressId" value={address.id} />
@@ -148,86 +158,101 @@ const EditAddress: React.FC<EditAddressProps> = ({
                 />
               </div>
               <Input
-                label="Company"
-                name="company"
-                autoComplete="organization"
-                defaultValue={address.company || undefined}
-                data-testid="company-input"
+                label="Phone (98XXXXXXXX)"
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                required
+                pattern={NEPAL_PHONE_PATTERN}
+                title={NEPAL_PHONE_TITLE}
+                inputMode="numeric"
+                maxLength={10}
+                defaultValue={address.phone || undefined}
+                data-testid="phone-input"
+              />
+              <NativeSelect
+                name="province"
+                placeholder="Province"
+                required
+                defaultValue={address.province || undefined}
+                data-testid="province-select"
+              >
+                {NEPAL_PROVINCES.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </NativeSelect>
+              <Input
+                label="Municipality / City & District"
+                name="city"
+                required
+                autoComplete="address-level2"
+                defaultValue={address.city || undefined}
+                data-testid="city-input"
               />
               <Input
-                label="Address"
+                label="Ward No. & Area / Tole"
+                name="address_2"
+                autoComplete="address-line2"
+                defaultValue={address.address_2 || undefined}
+                data-testid="address-2-input"
+              />
+              <Input
+                label="Street / Landmark"
                 name="address_1"
                 required
                 autoComplete="address-line1"
                 defaultValue={address.address_1 || undefined}
                 data-testid="address-1-input"
               />
-              <Input
-                label="Apartment, suite, etc."
-                name="address_2"
-                autoComplete="address-line2"
-                defaultValue={address.address_2 || undefined}
-                data-testid="address-2-input"
-              />
               <div className="grid grid-cols-[144px_1fr] gap-x-2">
                 <Input
-                  label="Postal code"
+                  label="Postal code (optional)"
                   name="postal_code"
-                  required
                   autoComplete="postal-code"
                   defaultValue={address.postal_code || undefined}
                   data-testid="postal-code-input"
                 />
                 <Input
-                  label="City"
-                  name="city"
-                  required
-                  autoComplete="locality"
-                  defaultValue={address.city || undefined}
-                  data-testid="city-input"
+                  label="Company (optional)"
+                  name="company"
+                  autoComplete="organization"
+                  defaultValue={address.company || undefined}
+                  data-testid="company-input"
                 />
               </div>
-              <Input
-                label="Province / State"
-                name="province"
-                autoComplete="address-level1"
-                defaultValue={address.province || undefined}
-                data-testid="state-input"
-              />
               <CountrySelect
                 name="country_code"
                 region={region}
                 required
                 autoComplete="country"
-                defaultValue={address.country_code || undefined}
+                defaultValue={address.country_code || "np"}
                 data-testid="country-select"
-              />
-              <Input
-                label="Phone"
-                name="phone"
-                autoComplete="phone"
-                defaultValue={address.phone || undefined}
-                data-testid="phone-input"
               />
             </div>
             {formState.error && (
-              <div className="text-rose-500 text-small-regular py-2">
+              <div className="pt-2 font-body text-body-sm text-red">
                 {formState.error}
               </div>
             )}
           </Modal.Body>
           <Modal.Footer>
-            <div className="flex gap-3 mt-6">
-              <Button
+            <div className="flex gap-3 mt-6 w-full">
+              <button
                 type="reset"
-                variant="secondary"
                 onClick={close}
-                className="h-10"
+                className="flex-1 rounded-full border border-ink px-6 py-3 font-body text-sm font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-paper"
                 data-testid="cancel-button"
               >
                 Cancel
-              </Button>
-              <SubmitButton data-testid="save-button">Save</SubmitButton>
+              </button>
+              <SubmitButton
+                data-testid="save-button"
+                className="flex-1 !rounded-full !bg-red hover:!bg-red-deep !text-paper !font-body !text-sm !font-semibold !uppercase !tracking-wide !h-auto !py-3"
+              >
+                Save
+              </SubmitButton>
             </div>
           </Modal.Footer>
         </form>

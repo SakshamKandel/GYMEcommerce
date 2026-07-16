@@ -1,71 +1,78 @@
-import { convertToLocale } from "@lib/util/money"
+import { formatNPR } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
-import { Heading, Text } from "@medusajs/ui"
-
-import Divider from "@modules/common/components/divider"
 
 type ShippingDetailsProps = {
   order: HttpTypes.StoreOrder
 }
 
+// Delivery ETA copy is keyed off the shipping option name — amounts always
+// come from order data, never hardcoded (R8 canonical strings).
+const etaForMethod = (name?: string | null) => {
+  if (!name) return null
+  const lower = name.toLowerCase()
+  if (lower.includes("outside")) return "Delivered in 3-5 days"
+  if (lower.includes("inside") || lower.includes("valley")) {
+    return "Delivered in 1-2 days"
+  }
+  return null
+}
+
 const ShippingDetails = ({ order }: ShippingDetailsProps) => {
+  const shippingMethod = (order as any).shipping_methods?.[0]
+  const eta = etaForMethod(shippingMethod?.name)
+
   return (
     <div>
-      <Heading level="h2" className="flex flex-row text-3xl-regular my-6">
+      <h2 className="font-body text-h4 font-semibold text-ink mb-3">
         Delivery
-      </Heading>
-      <div className="flex items-start gap-x-8">
-        <div
-          className="flex flex-col w-1/3"
-          data-testid="shipping-address-summary"
-        >
-          <Text className="txt-medium-plus text-ui-fg-base mb-1">
-            Shipping Address
-          </Text>
-          <Text className="txt-medium text-ui-fg-subtle">
+      </h2>
+      <div className="grid grid-cols-1 small:grid-cols-3 gap-6">
+        <div className="flex flex-col gap-1" data-testid="shipping-address-summary">
+          <p className="font-mono text-label-sm uppercase tracking-label text-ash">
+            Shipping address
+          </p>
+          <p className="font-body text-body-sm text-ink">
             {order.shipping_address?.first_name}{" "}
             {order.shipping_address?.last_name}
-          </Text>
-          <Text className="txt-medium text-ui-fg-subtle">
-            {order.shipping_address?.address_1}{" "}
-            {order.shipping_address?.address_2}
-          </Text>
-          <Text className="txt-medium text-ui-fg-subtle">
-            {order.shipping_address?.postal_code},{" "}
+          </p>
+          <p className="font-body text-body-sm text-ink">
+            {order.shipping_address?.address_1}
+            {order.shipping_address?.address_2
+              ? `, ${order.shipping_address.address_2}`
+              : ""}
+          </p>
+          <p className="font-body text-body-sm text-ink">
             {order.shipping_address?.city}
-          </Text>
-          <Text className="txt-medium text-ui-fg-subtle">
-            {order.shipping_address?.country_code?.toUpperCase()}
-          </Text>
+            {order.shipping_address?.postal_code
+              ? `, ${order.shipping_address.postal_code}`
+              : ""}
+          </p>
+          <p className="font-body text-body-sm text-ink">
+            {order.shipping_address?.province}
+          </p>
         </div>
 
-        <div
-          className="flex flex-col w-1/3 "
-          data-testid="shipping-contact-summary"
-        >
-          <Text className="txt-medium-plus text-ui-fg-base mb-1">Contact</Text>
-          <Text className="txt-medium text-ui-fg-subtle">
+        <div className="flex flex-col gap-1" data-testid="shipping-contact-summary">
+          <p className="font-mono text-label-sm uppercase tracking-label text-ash">
+            Contact
+          </p>
+          <p className="font-body text-body-sm text-ink">
             {order.shipping_address?.phone}
-          </Text>
-          <Text className="txt-medium text-ui-fg-subtle">{order.email}</Text>
+          </p>
+          <p className="font-body text-body-sm text-ink">{order.email}</p>
         </div>
 
-        <div
-          className="flex flex-col w-1/3"
-          data-testid="shipping-method-summary"
-        >
-          <Text className="txt-medium-plus text-ui-fg-base mb-1">Method</Text>
-          <Text className="txt-medium text-ui-fg-subtle">
-            {(order as any).shipping_methods[0]?.name} (
-            {convertToLocale({
-              amount: order.shipping_methods?.[0].total ?? 0,
-              currency_code: order.currency_code,
-            })}
-            )
-          </Text>
+        <div className="flex flex-col gap-1" data-testid="shipping-method-summary">
+          <p className="font-mono text-label-sm uppercase tracking-label text-ash">
+            Method
+          </p>
+          <p className="font-body text-body-sm text-ink">
+            {shippingMethod?.name} (
+            {formatNPR(shippingMethod?.total ?? 0)})
+          </p>
+          {eta && <p className="font-body text-body-sm text-ash">{eta} · Cash on Delivery</p>}
         </div>
       </div>
-      <Divider className="mt-8" />
     </div>
   )
 }

@@ -46,18 +46,20 @@ export default async function RelatedProducts({
     return null
   }
 
+  const brand = product.collection?.title
+
   return (
-    <div className="product-page-constraint">
-      <div className="flex flex-col items-center text-center mb-16">
-        <span className="text-base-regular text-gray-600 mb-6">
-          Related products
+    <div className="shell">
+      <div className="mb-10 flex flex-col gap-y-2 small:mb-14">
+        <span className="font-mono text-label uppercase tracking-label text-red">
+          More to explore
         </span>
-        <p className="text-2xl-regular text-ui-fg-base max-w-lg">
-          You might also want to check out these products.
-        </p>
+        <h2 className="font-display text-display-2 uppercase text-ink">
+          {brand ? `More from ${brand}` : "You might also like"}
+        </h2>
       </div>
 
-      <ul className="grid grid-cols-2 small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8">
+      <ul className="grid grid-cols-2 gap-x-4 gap-y-10 small:grid-cols-3 medium:grid-cols-4">
         {products.map((product) => (
           <li key={product.id}>
             <Product region={region} product={product} />

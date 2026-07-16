@@ -1,7 +1,6 @@
 "use client"
 
 import { acceptTransferRequest, declineTransferRequest } from "@lib/data/orders"
-import { Button, Text } from "@medusajs/ui"
 import { useState } from "react"
 
 type TransferStatus = "pending" | "success" | "error"
@@ -39,41 +38,42 @@ const TransferActions = ({ id, token }: { id: string; token: string }) => {
   return (
     <div className="flex flex-col gap-y-4">
       {status?.accept === "success" && (
-        <Text className="text-emerald-500">
+        <p className="font-body text-body-sm text-ink">
           Order transferred successfully!
-        </Text>
+        </p>
       )}
       {status?.decline === "success" && (
-        <Text className="text-emerald-500">
+        <p className="font-body text-body-sm text-ink">
           Order transfer declined successfully!
-        </Text>
+        </p>
       )}
       {status?.accept !== "success" && status?.decline !== "success" && (
         <div className="flex gap-x-4">
-          <Button
-            size="large"
+          <button
+            type="button"
             onClick={acceptTransfer}
-            isLoading={status?.accept === "pending"}
             disabled={
               status?.accept === "pending" || status?.decline === "pending"
             }
+            className="rounded-full bg-red px-6 py-3 font-body text-sm font-semibold uppercase tracking-wide text-paper hover:bg-red-deep disabled:opacity-60"
           >
-            Accept transfer
-          </Button>
-          <Button
-            size="large"
-            variant="secondary"
+            {status?.accept === "pending" ? "Accepting…" : "Accept transfer"}
+          </button>
+          <button
+            type="button"
             onClick={declineTransfer}
-            isLoading={status?.decline === "pending"}
             disabled={
               status?.accept === "pending" || status?.decline === "pending"
             }
+            className="rounded-full border border-ink px-6 py-3 font-body text-sm font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-paper disabled:opacity-60"
           >
-            Decline transfer
-          </Button>
+            {status?.decline === "pending" ? "Declining…" : "Decline transfer"}
+          </button>
         </div>
       )}
-      {errorMessage && <Text className="text-red-500">{errorMessage}</Text>}
+      {errorMessage && (
+        <p className="font-body text-body-sm text-red">{errorMessage}</p>
+      )}
     </div>
   )
 }

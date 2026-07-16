@@ -1,16 +1,7 @@
-import { HttpTypes } from "@medusajs/types"
-import ProductRail from "@modules/home/components/featured-products/product-rail"
-
-export default async function FeaturedProducts({
-  collections,
-  region,
-}: {
-  collections: HttpTypes.StoreCollection[]
-  region: HttpTypes.StoreRegion
-}) {
-  return collections.map((collection) => (
-    <li key={collection.id}>
-      <ProductRail collection={collection} region={region} />
-    </li>
-  ))
-}
+/**
+ * Barrel for the home product rails (REBUILD of the starter's FeaturedProducts/ProductRail).
+ * FreshStock  → newest-8 grid (03 §2.6)
+ * BestSellers → newest fallback rail (03 §2.9)
+ */
+export { default as FreshStock } from "./fresh-stock"
+export { default as BestSellers } from "./product-rail"

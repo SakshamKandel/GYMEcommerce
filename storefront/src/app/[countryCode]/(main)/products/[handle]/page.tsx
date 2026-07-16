@@ -55,18 +55,18 @@ export async function generateStaticParams() {
 function getImagesForVariant(
   product: HttpTypes.StoreProduct,
   selectedVariantId?: string
-) {
+): HttpTypes.StoreProductImage[] {
   if (!selectedVariantId || !product.variants) {
-    return product.images
+    return product.images ?? []
   }
 
-  const variant = product.variants!.find((v) => v.id === selectedVariantId)
-  if (!variant || !variant.images.length) {
-    return product.images
+  const variant = product.variants.find((v) => v.id === selectedVariantId)
+  if (!variant || !variant.images?.length) {
+    return product.images ?? []
   }
 
   const imageIdsMap = new Map(variant.images.map((i) => [i.id, true]))
-  return product.images!.filter((i) => imageIdsMap.has(i.id))
+  return (product.images ?? []).filter((i) => imageIdsMap.has(i.id))
 }
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
@@ -87,12 +87,20 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     notFound()
   }
 
+  const brand = product.collection?.title
+  const title = `${product.title} | Protein Pasal`
+  const description =
+    product.description ||
+    `Buy genuine ${
+      brand ? `${brand} ` : ""
+    }${product.title} in Nepal. 100% authentic, sourced from authorized distributors. Cash on Delivery nationwide.`
+
   return {
-    title: `${product.title} | Medusa Store`,
-    description: `${product.title}`,
+    title,
+    description,
     openGraph: {
-      title: `${product.title} | Medusa Store`,
-      description: `${product.title}`,
+      title,
+      description,
       images: product.thumbnail ? [product.thumbnail] : [],
     },
   }

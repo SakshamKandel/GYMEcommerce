@@ -1,16 +1,21 @@
 "use client"
 
 import { Plus } from "@medusajs/icons"
-import { Button, Heading } from "@medusajs/ui"
 import { useEffect, useState, useActionState } from "react"
 
 import useToggleState from "@lib/hooks/use-toggle-state"
 import CountrySelect from "@modules/checkout/components/country-select"
 import Input from "@modules/common/components/input"
+import NativeSelect from "@modules/common/components/native-select"
 import Modal from "@modules/common/components/modal"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import { HttpTypes } from "@medusajs/types"
 import { addCustomerAddress } from "@lib/data/customer"
+import {
+  NEPAL_PROVINCES,
+  NEPAL_PHONE_PATTERN,
+  NEPAL_PHONE_TITLE,
+} from "@modules/account/utils/np-address"
 
 const AddAddress = ({
   region,
@@ -49,17 +54,21 @@ const AddAddress = ({
   return (
     <>
       <button
-        className="border border-ui-border-base rounded-rounded p-5 min-h-[220px] h-full w-full flex flex-col justify-between"
+        className="flex min-h-[220px] h-full w-full flex-col justify-between border border-dashed border-line p-5 text-left transition-colors hover:border-ink"
         onClick={open}
         data-testid="add-address-button"
       >
-        <span className="text-base-semi">New address</span>
+        <span className="font-body text-sm font-semibold uppercase tracking-wide text-ink">
+          New address
+        </span>
         <Plus />
       </button>
 
       <Modal isOpen={state} close={close} data-testid="add-address-modal">
         <Modal.Title>
-          <Heading className="mb-2">Add address</Heading>
+          <span className="font-display text-2xl uppercase text-ink">
+            Add address
+          </span>
         </Modal.Title>
         <form action={formAction}>
           <Modal.Body>
@@ -81,63 +90,70 @@ const AddAddress = ({
                 />
               </div>
               <Input
-                label="Company"
-                name="company"
-                autoComplete="organization"
-                data-testid="company-input"
+                label="Phone (98XXXXXXXX)"
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                required
+                pattern={NEPAL_PHONE_PATTERN}
+                title={NEPAL_PHONE_TITLE}
+                inputMode="numeric"
+                maxLength={10}
+                data-testid="phone-input"
+              />
+              <NativeSelect name="province" placeholder="Province" required data-testid="province-select">
+                {NEPAL_PROVINCES.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </NativeSelect>
+              <Input
+                label="Municipality / City & District"
+                name="city"
+                required
+                autoComplete="address-level2"
+                data-testid="city-input"
               />
               <Input
-                label="Address"
+                label="Ward No. & Area / Tole"
+                name="address_2"
+                autoComplete="address-line2"
+                data-testid="address-2-input"
+              />
+              <Input
+                label="Street / Landmark"
                 name="address_1"
                 required
                 autoComplete="address-line1"
                 data-testid="address-1-input"
               />
-              <Input
-                label="Apartment, suite, etc."
-                name="address_2"
-                autoComplete="address-line2"
-                data-testid="address-2-input"
-              />
               <div className="grid grid-cols-[144px_1fr] gap-x-2">
                 <Input
-                  label="Postal code"
+                  label="Postal code (optional)"
                   name="postal_code"
-                  required
                   autoComplete="postal-code"
                   data-testid="postal-code-input"
                 />
                 <Input
-                  label="City"
-                  name="city"
-                  required
-                  autoComplete="locality"
-                  data-testid="city-input"
+                  label="Company (optional)"
+                  name="company"
+                  autoComplete="organization"
+                  data-testid="company-input"
                 />
               </div>
-              <Input
-                label="Province / State"
-                name="province"
-                autoComplete="address-level1"
-                data-testid="state-input"
-              />
               <CountrySelect
                 region={region}
                 name="country_code"
                 required
                 autoComplete="country"
+                defaultValue="np"
                 data-testid="country-select"
-              />
-              <Input
-                label="Phone"
-                name="phone"
-                autoComplete="phone"
-                data-testid="phone-input"
               />
             </div>
             {formState.error && (
               <div
-                className="text-rose-500 text-small-regular py-2"
+                className="pt-2 font-body text-body-sm text-red"
                 data-testid="address-error"
               >
                 {formState.error}
@@ -145,17 +161,21 @@ const AddAddress = ({
             )}
           </Modal.Body>
           <Modal.Footer>
-            <div className="flex gap-3 mt-6">
-              <Button
+            <div className="flex gap-3 mt-6 w-full">
+              <button
                 type="reset"
-                variant="secondary"
                 onClick={close}
-                className="h-10"
+                className="flex-1 rounded-full border border-ink px-6 py-3 font-body text-sm font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-paper"
                 data-testid="cancel-button"
               >
                 Cancel
-              </Button>
-              <SubmitButton data-testid="save-button">Save</SubmitButton>
+              </button>
+              <SubmitButton
+                data-testid="save-button"
+                className="flex-1 !rounded-full !bg-red hover:!bg-red-deep !text-paper !font-body !text-sm !font-semibold !uppercase !tracking-wide !h-auto !py-3"
+              >
+                Save
+              </SubmitButton>
             </div>
           </Modal.Footer>
         </form>

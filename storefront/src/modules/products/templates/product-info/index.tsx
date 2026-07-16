@@ -1,5 +1,4 @@
 import { HttpTypes } from "@medusajs/types"
-import { Heading, Text } from "@medusajs/ui"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 type ProductInfoProps = {
@@ -9,29 +8,34 @@ type ProductInfoProps = {
 const ProductInfo = ({ product }: ProductInfoProps) => {
   return (
     <div id="product-info">
-      <div className="flex flex-col gap-y-4 lg:max-w-[500px] mx-auto">
+      <div className="flex flex-col gap-y-3">
         {product.collection && (
+          // Red mono uppercase brand eyebrow → collection page (R14).
           <LocalizedClientLink
             href={`/collections/${product.collection.handle}`}
-            className="text-medium text-ui-fg-muted hover:text-ui-fg-subtle"
+            className="w-fit font-mono text-label uppercase tracking-label text-red transition-colors hover:text-red-deep"
+            data-testid="product-collection-link"
           >
             {product.collection.title}
           </LocalizedClientLink>
         )}
-        <Heading
-          level="h2"
-          className="text-3xl leading-10 text-ui-fg-base"
+
+        {/* R14: PDP title = Inter text-h1 bold, sentence case (real casing in DOM). */}
+        <h1
+          className="font-body text-h1 font-bold text-ink"
           data-testid="product-title"
         >
           {product.title}
-        </Heading>
+        </h1>
 
-        <Text
-          className="text-medium text-ui-fg-subtle whitespace-pre-line"
-          data-testid="product-description"
-        >
-          {product.description}
-        </Text>
+        {product.description && (
+          <p
+            className="whitespace-pre-line font-body text-body text-ash"
+            data-testid="product-description"
+          >
+            {product.description}
+          </p>
+        )}
       </div>
     </div>
   )

@@ -1,47 +1,67 @@
-import { listProducts } from "@lib/data/products"
 import { HttpTypes } from "@medusajs/types"
-import { Text } from "@medusajs/ui"
-
-import InteractiveLink from "@modules/common/components/interactive-link"
+import { listProductsWithSort } from "@lib/data/products"
 import ProductPreview from "@modules/products/components/product-preview"
+import HScrollRail from "@modules/common/components/hscroll-rail"
+import PillButton from "@modules/common/components/pill-button"
 
-export default async function ProductRail({
-  collection,
+/**
+ * HOME — Section 10: BEST SELLERS rail (REBUILD wrapper, per 03 §2.9 + guardrail §4.0.4).
+ * No bestseller signal is seeded at launch (R11), so this FALLS BACK TO NEWEST — it pulls the
+ * next page of newest products so the cards differ from the Fresh Stock grid above, and
+ * re-fetches page 1 if the catalog is too small for a second page. Never empty.
+ * // TODO: swap to metadata.bestseller ordering once a signal is seeded.
+ */
+const BestSellers = async ({
   region,
+  countryCode,
 }: {
-  collection: HttpTypes.StoreCollection
   region: HttpTypes.StoreRegion
-}) {
-  const {
-    response: { products: pricedProducts },
-  } = await listProducts({
-    regionId: region.id,
-    queryParams: {
-      collection_id: collection.id,
-      fields: "*variants.calculated_price",
-    },
+  countryCode: string
+}) => {
+  let {
+    response: { products },
+  } = await listProductsWithSort({
+    countryCode,
+    sortBy: "created_at",
+    page: 2,
+    queryParams: { limit: 8 },
   })
 
-  if (!pricedProducts) {
-    return null
+  // Small catalog: no second page — fall back to newest page 1.
+  if (!products?.length) {
+    ;({
+      response: { products },
+    } = await listProductsWithSort({
+      countryCode,
+      sortBy: "created_at",
+      page: 1,
+      queryParams: { limit: 8 },
+    }))
+  }
+
+  if (!products?.length) {
+    return (
+      <div className="border-y border-ink/15 py-16 text-center">
+        <p className="font-display text-display-2 uppercase text-ink">
+          Best sellers coming soon
+        </p>
+        <p className="mx-auto mt-3 mb-8 max-w-md font-body text-body-sm text-ash">
+          We&apos;re stocking up. Explore everything in the store while we do.
+        </p>
+        <PillButton href="/store" variant="primary">
+          Shop all
+        </PillButton>
+      </div>
+    )
   }
 
   return (
-    <div className="content-container py-12 small:py-24">
-      <div className="flex justify-between mb-8">
-        <Text className="txt-xlarge">{collection.title}</Text>
-        <InteractiveLink href={`/collections/${collection.handle}`}>
-          View all
-        </InteractiveLink>
-      </div>
-      <ul className="grid grid-cols-2 small:grid-cols-3 gap-x-6 gap-y-24 small:gap-y-36">
-        {pricedProducts &&
-          pricedProducts.map((product) => (
-            <li key={product.id}>
-              <ProductPreview product={product} region={region} isFeatured />
-            </li>
-          ))}
-      </ul>
-    </div>
+    <HScrollRail itemClassName="w-[64vw] xsmall:w-[280px]">
+      {products.map((product) => (
+        <ProductPreview key={product.id} product={product} region={region} />
+      ))}
+    </HScrollRail>
   )
 }
+
+export default BestSellers

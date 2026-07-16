@@ -1,18 +1,22 @@
 "use client"
 
-import React, { useEffect, useActionState } from "react";
+import React, { useEffect, useActionState } from "react"
 
 import Input from "@modules/common/components/input"
 
 import AccountInfo from "../account-info"
 import { HttpTypes } from "@medusajs/types"
 import { updateCustomer } from "@lib/data/customer"
+import {
+  NEPAL_PHONE_PATTERN,
+  NEPAL_PHONE_TITLE,
+} from "@modules/account/utils/np-address"
 
 type MyInformationProps = {
   customer: HttpTypes.StoreCustomer
 }
 
-const ProfileEmail: React.FC<MyInformationProps> = ({ customer }) => {
+const ProfilePhone: React.FC<MyInformationProps> = ({ customer }) => {
   const [successState, setSuccessState] = React.useState(false)
 
   const updateCustomerPhone = async (
@@ -48,7 +52,7 @@ const ProfileEmail: React.FC<MyInformationProps> = ({ customer }) => {
     <form action={formAction} className="w-full">
       <AccountInfo
         label="Phone"
-        currentInfo={`${customer.phone}`}
+        currentInfo={`${customer.phone || "Not set"}`}
         isSuccess={successState}
         isError={!!state.error}
         errorMessage={state.error}
@@ -57,11 +61,15 @@ const ProfileEmail: React.FC<MyInformationProps> = ({ customer }) => {
       >
         <div className="grid grid-cols-1 gap-y-2">
           <Input
-            label="Phone"
+            label="Phone (98XXXXXXXX)"
             name="phone"
-            type="phone"
-            autoComplete="phone"
+            type="tel"
+            autoComplete="tel"
             required
+            pattern={NEPAL_PHONE_PATTERN}
+            title={NEPAL_PHONE_TITLE}
+            inputMode="numeric"
+            maxLength={10}
             defaultValue={customer.phone ?? ""}
             data-testid="phone-input"
           />
@@ -71,4 +79,4 @@ const ProfileEmail: React.FC<MyInformationProps> = ({ customer }) => {
   )
 }
 
-export default ProfileEmail
+export default ProfilePhone

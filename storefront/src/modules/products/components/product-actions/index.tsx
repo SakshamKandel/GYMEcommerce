@@ -3,9 +3,9 @@
 import { addToCart } from "@lib/data/cart"
 import { useIntersection } from "@lib/hooks/use-in-view"
 import { HttpTypes } from "@medusajs/types"
-import { Button } from "@medusajs/ui"
-import Divider from "@modules/common/components/divider"
+import { clx } from "@medusajs/ui"
 import OptionSelect from "@modules/products/components/product-actions/option-select"
+import Spinner from "@modules/common/icons/spinner"
 import { isEqual } from "lodash"
 import { useParams, usePathname, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -135,53 +135,71 @@ export default function ProductActions({
     setIsAdding(false)
   }
 
+  const ctaDisabled =
+    !inStock || !selectedVariant || !!disabled || isAdding || !isValidVariant
+
+  const ctaLabel =
+    !selectedVariant && !options
+      ? "Select variant"
+      : !inStock || !isValidVariant
+      ? "Out of stock"
+      : "Add to cart"
+
   return (
     <>
-      <div className="flex flex-col gap-y-2" ref={actionsRef}>
-        <div>
-          {(product.variants?.length ?? 0) > 1 && (
-            <div className="flex flex-col gap-y-4">
-              {(product.options || []).map((option) => {
-                return (
-                  <div key={option.id}>
-                    <OptionSelect
-                      option={option}
-                      current={options[option.id]}
-                      updateOption={setOptionValue}
-                      title={option.title ?? ""}
-                      data-testid="product-options"
-                      disabled={!!disabled || isAdding}
-                    />
-                  </div>
-                )
-              })}
-              <Divider />
-            </div>
-          )}
-        </div>
+      <div className="flex flex-col gap-y-6" ref={actionsRef}>
+        {(product.variants?.length ?? 0) > 1 && (
+          <div className="flex flex-col gap-y-5 border-b border-line pb-6">
+            {(product.options || []).map((option) => {
+              return (
+                <div key={option.id}>
+                  <OptionSelect
+                    option={option}
+                    current={options[option.id]}
+                    updateOption={setOptionValue}
+                    title={option.title ?? ""}
+                    data-testid="product-options"
+                    disabled={!!disabled || isAdding}
+                  />
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         <ProductPrice product={product} variant={selectedVariant} />
 
-        <Button
+        <button
           onClick={handleAddToCart}
-          disabled={
-            !inStock ||
-            !selectedVariant ||
-            !!disabled ||
-            isAdding ||
-            !isValidVariant
-          }
-          variant="primary"
-          className="w-full h-10"
-          isLoading={isAdding}
+          disabled={ctaDisabled}
           data-testid="add-product-button"
+          className={clx(
+            "group flex w-full items-center justify-center gap-3 px-7 py-4 font-body text-sm font-semibold uppercase tracking-wide transition-colors duration-150 ease-out",
+            ctaDisabled
+              ? "cursor-not-allowed bg-ash text-paper/80"
+              : "bg-red text-paper hover:bg-red-deep"
+          )}
         >
-          {!selectedVariant && !options
-            ? "Select variant"
-            : !inStock || !isValidVariant
-            ? "Out of stock"
-            : "Add to cart"}
-        </Button>
+          {isAdding ? (
+            <Spinner size="18" />
+          ) : (
+            <>
+              <span>{ctaLabel}</span>
+              <span className="transition-transform duration-150 ease-out group-hover:translate-x-1">
+                <svg
+                  viewBox="0 0 16 16"
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path d="M3 8h10M9 4l4 4-4 4" strokeLinecap="square" />
+                </svg>
+              </span>
+            </>
+          )}
+        </button>
+
         <MobileActions
           product={product}
           variant={selectedVariant}

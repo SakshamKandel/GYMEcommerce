@@ -1,5 +1,5 @@
 import { Disclosure } from "@headlessui/react"
-import { Badge, Button, clx } from "@medusajs/ui"
+import { clx } from "@medusajs/ui"
 import { useEffect } from "react"
 
 import useToggleState from "@lib/hooks/use-toggle-state"
@@ -42,30 +42,34 @@ const AccountInfo = ({
   }, [isSuccess, close])
 
   return (
-    <div className="text-small-regular" data-testid={dataTestid}>
-      <div className="flex items-end justify-between">
-        <div className="flex flex-col">
-          <span className="uppercase text-ui-fg-base">{label}</span>
+    <div className="font-body text-body-sm" data-testid={dataTestid}>
+      <div className="flex items-end justify-between gap-4 border-b border-line pb-4">
+        <div className="flex flex-col gap-y-1">
+          <span className="font-mono text-label uppercase tracking-label text-ash">
+            {label}
+          </span>
           <div className="flex items-center flex-1 basis-0 justify-end gap-x-4">
             {typeof currentInfo === "string" ? (
-              <span className="font-semibold" data-testid="current-info">{currentInfo}</span>
+              <span
+                className="font-body text-body text-ink font-semibold"
+                data-testid="current-info"
+              >
+                {currentInfo}
+              </span>
             ) : (
               currentInfo
             )}
           </div>
         </div>
-        <div>
-          <Button
-            variant="secondary"
-            className="w-[100px] min-h-[25px] py-1"
-            onClick={handleToggle}
-            type={state ? "reset" : "button"}
-            data-testid="edit-button"
-            data-active={state}
-          >
-            {state ? "Cancel" : "Edit"}
-          </Button>
-        </div>
+        <button
+          type={state ? "reset" : "button"}
+          onClick={handleToggle}
+          className="shrink-0 rounded-full border border-ink px-5 py-2 font-body text-xs font-semibold uppercase tracking-wide text-ink transition-colors hover:bg-ink hover:text-paper"
+          data-testid="edit-button"
+          data-active={state}
+        >
+          {state ? "Cancel" : "Edit"}
+        </button>
       </div>
 
       {/* Success state */}
@@ -81,9 +85,9 @@ const AccountInfo = ({
           )}
           data-testid="success-message"
         >
-          <Badge className="p-2 my-4" color="green">
-            <span>{label} updated succesfully</span>
-          </Badge>
+          <div className="mt-4 inline-flex items-center gap-2 border border-ink/20 bg-fog px-3 py-1.5 font-mono text-label-sm uppercase tracking-label text-ink">
+            ✓ {label} updated successfully
+          </div>
         </Disclosure.Panel>
       </Disclosure>
 
@@ -100,9 +104,9 @@ const AccountInfo = ({
           )}
           data-testid="error-message"
         >
-          <Badge className="p-2 my-4" color="red">
-            <span>{errorMessage}</span>
-          </Badge>
+          <div className="mt-4 inline-flex items-center gap-2 border border-red/30 px-3 py-1.5 font-mono text-label-sm uppercase tracking-label text-red">
+            {errorMessage}
+          </div>
         </Disclosure.Panel>
       </Disclosure>
 
@@ -120,14 +124,14 @@ const AccountInfo = ({
           <div className="flex flex-col gap-y-2 py-4">
             <div>{children}</div>
             <div className="flex items-center justify-end mt-2">
-              <Button
-                isLoading={pending}
-                className="w-full small:max-w-[140px]"
+              <button
                 type="submit"
+                disabled={pending}
+                className="w-full small:w-auto small:min-w-[160px] rounded-full bg-red px-6 py-3 font-body text-sm font-semibold uppercase tracking-wide text-paper transition-colors hover:bg-red-deep disabled:opacity-60"
                 data-testid="save-button"
               >
-                Save changes
-              </Button>
+                {pending ? "Saving…" : "Save changes"}
+              </button>
             </div>
           </div>
         </Disclosure.Panel>
