@@ -9,7 +9,9 @@ ENV NEXT_PUBLIC_DEFAULT_REGION=np
 ENV MEDUSA_BACKEND_URL=http://backend:9000
 
 COPY package*.json ./
-RUN npm ci --no-audit --no-fund
+# npm install (not ci): the lock file is generated on Windows and drifts from
+# Alpine npm's resolution for a few transitive deps.
+RUN npm install --no-audit --no-fund
 
 COPY . .
 RUN npm run build
