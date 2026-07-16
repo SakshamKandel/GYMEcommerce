@@ -3,6 +3,7 @@ import { LOGIN_VIEW } from "@modules/account/templates/login-template"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import Input from "@modules/common/components/input"
+import { useSearchParams } from "next/navigation"
 import { useActionState } from "react"
 
 type Props = {
@@ -11,6 +12,7 @@ type Props = {
 
 const Login = ({ setCurrentView }: Props) => {
   const [message, formAction] = useActionState(login, null)
+  const redirectTo = useSearchParams().get("redirect")
 
   return (
     <div
@@ -24,9 +26,14 @@ const Login = ({ setCurrentView }: Props) => {
         Welcome back
       </h1>
       <p className="text-center font-body text-body-sm text-ash mt-4 mb-8">
-        Sign in for order history, saved addresses &amp; faster checkout.
+        {redirectTo
+          ? "Sign in to continue — we'll take you right back to where you were."
+          : "Sign in for order history, saved addresses & faster checkout."}
       </p>
       <form className="w-full" action={formAction}>
+        {redirectTo && (
+          <input type="hidden" name="redirect_to" value={redirectTo} />
+        )}
         <div className="flex flex-col w-full gap-y-3">
           <Input
             label="Email"

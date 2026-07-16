@@ -5,6 +5,7 @@ import medusaError from "@lib/util/medusa-error"
 import { HttpTypes } from "@medusajs/types"
 import { revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
+import { addToCart } from "./cart"
 import {
   getAuthHeaders,
   getCacheOptions,
@@ -59,8 +60,56 @@ export const updateCustomer = async (body: HttpTypes.StoreUpdateCustomer) => {
   return updateRes
 }
 
+/**
+ * Only same-site relative paths may be used as post-auth redirect targets
+ * (never protocol-relative or absolute URLs — prevents open redirects).
+ */
+const sanitizeRedirect = (raw: FormDataEntryValue | null): string | null => {
+  const value = typeof raw === "string" ? raw.trim() : ""
+  return value.startsWith("/") && !value.startsWith("//") ? value : null
+}
+
+/**
+ * Guest add-to-cart continuity: the PDP sends guests to login with the return
+ * URL carrying a pending-add intent (?add=<variant>&qty=<n>). It is consumed
+ * HERE, server-side, right after authentication — deterministic, exactly
+ * once — and the customer lands back on the product page with the item
+ * already in their cart. Returns the redirect target stripped of the intent.
+ * An add failure never blocks the login itself.
+ */
+async function consumePendingAdd(target: string): Promise<string> {
+  try {
+    const url = new URL(target, "http://relative.local")
+    const variantId = url.searchParams.get("add")
+
+    if (!variantId) {
+      return target
+    }
+
+    const rawQty = parseInt(url.searchParams.get("qty") ?? "1", 10)
+    const quantity = Math.min(10, Math.max(1, isNaN(rawQty) ? 1 : rawQty))
+
+    url.searchParams.delete("add")
+    url.searchParams.delete("qty")
+    const cleaned = url.pathname + url.search
+    const countryCode = target.split("/").filter(Boolean)[0] || "np"
+
+    try {
+      await addToCart({ variantId, quantity, countryCode })
+    } catch {
+      // Item add failed (e.g. went out of stock mid-login) — continue the
+      // login and land on the product page so the buyer can retry there.
+    }
+
+    return cleaned
+  } catch {
+    return target
+  }
+}
+
 export async function signup(_currentState: unknown, formData: FormData) {
   const password = formData.get("password") as string
+  const redirectTo = sanitizeRedirect(formData.get("redirect_to"))
   const customerForm = {
     email: formData.get("email") as string,
     first_name: formData.get("first_name") as string,
@@ -98,8 +147,19 @@ export async function signup(_currentState: unknown, formData: FormData) {
 
     await transferCart()
 
+    if (redirectTo) {
+      // Session continuity: return the new customer to the page they came
+      // from, fulfilling any pending add-to-cart intent server-side first.
+      // redirect() throws — must not be caught below, so rethrow it untouched.
+      redirect(await consumePendingAdd(redirectTo))
+    }
+
     return createdCustomer
   } catch (error: any) {
+    // next/navigation redirect() signals via a thrown error — pass it through.
+    if (typeof error?.digest === "string" && error.digest.startsWith("NEXT_REDIRECT")) {
+      throw error
+    }
     return error.toString()
   }
 }
@@ -107,6 +167,7 @@ export async function signup(_currentState: unknown, formData: FormData) {
 export async function login(_currentState: unknown, formData: FormData) {
   const email = formData.get("email") as string
   const password = formData.get("password") as string
+  const redirectTo = sanitizeRedirect(formData.get("redirect_to"))
 
   try {
     await sdk.auth
@@ -124,6 +185,13 @@ export async function login(_currentState: unknown, formData: FormData) {
     await transferCart()
   } catch (error: any) {
     return error.toString()
+  }
+
+  // Session continuity: land the customer back where they left off — with
+  // any pending add-to-cart intent already fulfilled server-side.
+  // (redirect() throws internally, so it lives outside the try/catch above.)
+  if (redirectTo) {
+    redirect(await consumePendingAdd(redirectTo))
   }
 }
 

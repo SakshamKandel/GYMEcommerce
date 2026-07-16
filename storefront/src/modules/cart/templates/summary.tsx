@@ -49,7 +49,7 @@ const Summary = ({ cart, customer }: SummaryProps) => {
         </PillButton>
       ) : (
         <PillButton
-          href="/account"
+          href="/account?redirect=/checkout"
           variant="red"
           data-testid="checkout-button"
           className="w-full justify-center"

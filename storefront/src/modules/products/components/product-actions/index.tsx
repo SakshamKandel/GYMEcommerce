@@ -19,6 +19,9 @@ type ProductActionsProps = {
   product: HttpTypes.StoreProduct
   region: HttpTypes.StoreRegion
   disabled?: boolean
+  /** Orders require an account — guests are bounced to login on add-to-cart
+   * and returned here to continue (defaults true for the disabled skeleton). */
+  isAuthenticated?: boolean
 }
 
 const optionsAsKeymap = (
@@ -78,6 +81,7 @@ const LOW_STOCK_THRESHOLD = 5
 export default function ProductActions({
   product,
   disabled,
+  isAuthenticated = true,
 }: ProductActionsProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -144,9 +148,17 @@ export default function ProductActions({
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString())
+    // Pending-add intent params are single-use (consumed by the auto-add
+    // effect below) — never let this sync write them back into the URL.
+    params.delete("add")
+    params.delete("qty")
     const value = isValidVariant ? selectedVariant?.id : null
 
-    if (params.get("v_id") === value) {
+    if (
+      params.get("v_id") === value &&
+      !searchParams.get("add") &&
+      !searchParams.get("qty")
+    ) {
       return
     }
 
@@ -157,7 +169,8 @@ export default function ProductActions({
     }
 
     // scroll: false keeps the buyer anchored to the buy box on variant switch.
-    router.replace(pathname + "?" + params.toString(), { scroll: false })
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedVariant, isValidVariant])
 
@@ -278,6 +291,21 @@ export default function ProductActions({
   const handleAddToCart = async () => {
     if (!selectedVariant?.id) return null
 
+    // Session continuity for guests: send them to login carrying the exact
+    // return URL + pending add intent (?add=&qty=). After auth they land back
+    // here and the effect below completes the add automatically.
+    if (!isAuthenticated) {
+      const params = new URLSearchParams(searchParams.toString())
+      params.set("v_id", selectedVariant.id)
+      params.set("add", selectedVariant.id)
+      params.set("qty", String(quantity))
+      const returnTo = `${pathname}?${params.toString()}`
+      router.push(
+        `/${countryCode}/account?redirect=${encodeURIComponent(returnTo)}`
+      )
+      return
+    }
+
     setIsAdding(true)
 
     await addToCart({
@@ -293,6 +321,12 @@ export default function ProductActions({
     }
     addedTimerRef.current = setTimeout(() => setJustAdded(false), 2000)
   }
+
+  // NOTE: the pending guest add-to-cart intent (?add=&qty= on the login
+  // return URL) is consumed SERVER-SIDE inside the login/signup actions
+  // (lib/data/customer.ts consumePendingAdd) — deterministic and exactly
+  // once. No client-side auto-add happens here; the sync effect above only
+  // keeps stray intent params out of the URL.
 
   const ctaDisabled =
     !inStock || !selectedVariant || !!disabled || isAdding || !isValidVariant

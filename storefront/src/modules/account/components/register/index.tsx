@@ -7,6 +7,7 @@ import ErrorMessage from "@modules/checkout/components/error-message"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { signup } from "@lib/data/customer"
+import { useSearchParams } from "next/navigation"
 import {
   NEPAL_PHONE_PATTERN,
   NEPAL_PHONE_TITLE,
@@ -18,6 +19,7 @@ type Props = {
 
 const Register = ({ setCurrentView }: Props) => {
   const [message, formAction] = useActionState(signup, null)
+  const redirectTo = useSearchParams().get("redirect")
 
   return (
     <div
@@ -35,6 +37,9 @@ const Register = ({ setCurrentView }: Props) => {
         tracking on every Cash-on-Delivery order.
       </p>
       <form className="w-full flex flex-col" action={formAction}>
+        {redirectTo && (
+          <input type="hidden" name="redirect_to" value={redirectTo} />
+        )}
         <div className="flex flex-col w-full gap-y-3">
           <div className="grid grid-cols-2 gap-x-3">
             <Input

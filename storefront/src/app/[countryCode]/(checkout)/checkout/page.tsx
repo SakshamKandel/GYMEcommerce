@@ -19,10 +19,11 @@ export default async function Checkout() {
 
   const customer = await retrieveCustomer()
 
-  // Orders require an account: guests are sent to login/register first
-  // (backend enforces the same rule on cart completion).
+  // Orders require an account: guests are sent to login/register first and
+  // returned straight into checkout after auth (backend enforces the same
+  // rule on cart completion).
   if (!customer) {
-    redirect("/account")
+    redirect("/account?redirect=/checkout")
   }
 
   return (
