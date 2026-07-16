@@ -60,14 +60,21 @@ export default async function Nav() {
             </div>
           </div>
 
-          {/* Center: Anton wordmark */}
+          {/* Center: logo mark + Anton wordmark */}
           <div className="flex items-center h-full shrink-0">
             <LocalizedClientLink
               href="/"
-              className="font-display text-2xl uppercase tracking-tight leading-none text-paper hover:text-paper transition-colors"
+              className="flex items-center gap-2.5 font-display text-2xl uppercase tracking-tight leading-none text-paper hover:text-paper transition-colors"
               data-testid="nav-store-link"
             >
-              Protein Pasal
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo.png"
+                alt=""
+                className="h-10 w-auto shrink-0"
+                draggable={false}
+              />
+              <span>Protein Pasal</span>
             </LocalizedClientLink>
           </div>
 

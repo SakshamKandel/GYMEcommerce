@@ -3,6 +3,7 @@ import { HttpTypes } from "@medusajs/types"
 
 import { listProductsWithSort } from "@lib/data/products"
 import { getProductPrice } from "@lib/util/get-product-price"
+import { formatNPR } from "@lib/util/money"
 import PillButton from "@modules/common/components/pill-button"
 import ScrollReveal from "@modules/home/components/scroll-reveal"
 
@@ -76,7 +77,10 @@ const FeaturedPick = async ({
               </h2>
               {cheapestPrice && (
                 <p className="mt-5 font-body text-h2 font-semibold text-ink">
-                  From {cheapestPrice.calculated_price}
+                  From {formatNPR(cheapestPrice.calculated_price_number)}
+                  <span className="ml-2 align-middle font-mono text-label-sm uppercase tracking-label text-ash">
+                    incl. VAT
+                  </span>
                 </p>
               )}
               <p className="mt-3 font-body text-body-sm text-ash">

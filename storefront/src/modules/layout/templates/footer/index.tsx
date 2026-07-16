@@ -24,9 +24,16 @@ export default async function Footer() {
           <div>
             <LocalizedClientLink
               href="/"
-              className="font-display text-3xl uppercase leading-none text-paper hover:text-paper"
+              className="flex items-center gap-3 font-display text-3xl uppercase leading-none text-paper hover:text-paper"
             >
-              Protein Pasal
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo.png"
+                alt=""
+                className="h-14 w-auto shrink-0"
+                draggable={false}
+              />
+              <span>Protein Pasal</span>
             </LocalizedClientLink>
             <p className="mt-3 max-w-sm font-body text-body-sm text-paper/70">
               Nepal&apos;s multi-brand supplement store. 100% authentic, Cash
