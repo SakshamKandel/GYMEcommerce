@@ -278,6 +278,80 @@ export async function applyPromotions(codes: string[]) {
     .catch(medusaError)
 }
 
+/**
+ * Applies a single promotion code with real validation feedback.
+ * Medusa silently drops invalid codes from `promo_codes`, so success of the
+ * update call alone proves nothing — we re-read the cart and confirm the code
+ * actually attached. Codes are stored uppercase, so input is normalized.
+ * Returns null on success, or a user-facing error message.
+ */
+export async function applyPromotionCode(code: string): Promise<string | null> {
+  const normalized = code.trim().toUpperCase()
+
+  if (!normalized) {
+    return "Enter a promotion code."
+  }
+
+  const cartId = await getCartId()
+
+  if (!cartId) {
+    return "No active cart found."
+  }
+
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  const getPromotions = async () =>
+    sdk.store.cart
+      .retrieve(cartId, { fields: "*promotions" } as any, headers)
+      .then(({ cart }) => ((cart as any)?.promotions ?? []) as any[])
+      .catch(() => [] as any[])
+
+  const existing = await getPromotions()
+
+  if (
+    existing.some((p) => (p.code ?? "").toUpperCase() === normalized)
+  ) {
+    return "That code is already applied."
+  }
+
+  // Automatic promotions re-attach on their own and must not be resent as
+  // manual codes — Medusa treats unknown/automatic codes in promo_codes as
+  // invalid input.
+  const manualCodes = existing
+    .filter((p) => !p.is_automatic && p.code)
+    .map((p) => p.code as string)
+
+  try {
+    await sdk.store.cart.update(
+      cartId,
+      { promo_codes: [...manualCodes, normalized] },
+      {},
+      headers
+    )
+  } catch (e: any) {
+    return e.message
+  }
+
+  const updated = await getPromotions()
+  const applied = updated.some(
+    (p) => (p.code ?? "").toUpperCase() === normalized
+  )
+
+  const cartCacheTag = await getCacheTag("carts")
+  revalidateTag(cartCacheTag)
+
+  const fulfillmentCacheTag = await getCacheTag("fulfillment")
+  revalidateTag(fulfillmentCacheTag)
+
+  if (!applied) {
+    return `"${normalized}" is not a valid promotion code.`
+  }
+
+  return null
+}
+
 export async function applyGiftCard(code: string) {
   //   const cartId = getCartId()
   //   if (!cartId) return "No cartId cookie found"

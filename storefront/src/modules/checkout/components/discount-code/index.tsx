@@ -3,7 +3,7 @@
 import { Badge, Heading, Input, Label, Text } from "@medusajs/ui"
 import React from "react"
 
-import { applyPromotions } from "@lib/data/cart"
+import { applyPromotionCode, applyPromotions } from "@lib/data/cart"
 import { convertToLocale, formatNPR } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
 import Trash from "@modules/common/icons/trash"
@@ -22,8 +22,10 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
 
   const { promotions = [] } = cart
   const removePromotionCode = async (code: string) => {
+    // Resend only the remaining MANUAL codes — automatic promotions re-attach
+    // on their own and are rejected when sent as promo_codes.
     const validPromotions = promotions.filter(
-      (promotion) => promotion.code !== code
+      (promotion) => promotion.code !== code && !promotion.is_automatic
     )
 
     await applyPromotions(
@@ -34,20 +36,19 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
   const addPromotionCode = async (formData: FormData) => {
     setErrorMessage("")
 
-    const code = formData.get("code")
+    const code = formData.get("code")?.toString().trim()
     if (!code) {
       return
     }
-    const input = document.getElementById("promotion-input") as HTMLInputElement
-    const codes = promotions
-      .filter((p) => p.code !== undefined)
-      .map((p) => p.code!)
-    codes.push(code.toString())
 
-    try {
-      await applyPromotions(codes)
-    } catch (e: any) {
-      setErrorMessage(e.message)
+    const error = await applyPromotionCode(code)
+    const input = document.getElementById("promotion-input") as HTMLInputElement
+
+    if (error) {
+      // Keep the form open and the typed code in place so the buyer can
+      // correct it — never fail silently.
+      setErrorMessage(error)
+      return
     }
 
     if (input) {
@@ -78,11 +79,12 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
             <>
               <div className="flex w-full gap-x-2">
                 <Input
-                  className="size-full"
+                  className="size-full uppercase"
                   id="promotion-input"
                   name="code"
                   type="text"
                   autoFocus={false}
+                  placeholder="e.g. NAMASTE500"
                   data-testid="discount-input"
                 />
                 <SubmitButton
