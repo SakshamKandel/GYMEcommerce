@@ -10,6 +10,11 @@ type Props = {
   searchParams: Promise<{ v_id?: string }>
 }
 
+// Always render on demand: live catalog data (cookie-scoped auth headers) +
+// the ?v_id= variant param conflict with static optimization
+// (DYNAMIC_SERVER_USAGE) in a production build.
+export const dynamic = "force-dynamic"
+
 export async function generateStaticParams() {
   try {
     const countryCodes = await listRegions().then((regions) =>
