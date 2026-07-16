@@ -40,12 +40,26 @@ export default function ProductActions({
   const [isAdding, setIsAdding] = useState(false)
   const countryCode = useParams().countryCode as string
 
-  // If there is only 1 variant, preselect the options
+  // Preselect a variant so the buy box never opens on a disabled
+  // "Out of stock" state while inventory exists: honor a shared ?v_id= link
+  // first, then the first purchasable variant, then the first variant.
   useEffect(() => {
-    if (product.variants?.length === 1) {
-      const variantOptions = optionsAsKeymap(product.variants[0].options)
-      setOptions(variantOptions ?? {})
+    const variants = product.variants
+    if (!variants?.length) {
+      return
     }
+
+    const isPurchasable = (v: HttpTypes.StoreProductVariant) =>
+      !v.manage_inventory ||
+      v.allow_backorder ||
+      (v.inventory_quantity || 0) > 0
+
+    const vId = searchParams.get("v_id")
+    const fromUrl = vId ? variants.find((v) => v.id === vId) : undefined
+    const preferred = fromUrl ?? variants.find(isPurchasable) ?? variants[0]
+
+    setOptions(optionsAsKeymap(preferred.options) ?? {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.variants])
 
   const selectedVariant = useMemo(() => {
@@ -138,12 +152,11 @@ export default function ProductActions({
   const ctaDisabled =
     !inStock || !selectedVariant || !!disabled || isAdding || !isValidVariant
 
-  const ctaLabel =
-    !selectedVariant && !options
-      ? "Select variant"
-      : !inStock || !isValidVariant
-      ? "Out of stock"
-      : "Add to cart"
+  const ctaLabel = !selectedVariant
+    ? "Select options"
+    : !inStock || !isValidVariant
+    ? "Out of stock"
+    : "Add to cart"
 
   return (
     <>
