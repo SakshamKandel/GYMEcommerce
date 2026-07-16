@@ -35,12 +35,13 @@ module.exports = {
           90: "#111827",
         },
         // Protein Pasal palette (02-design-system §1, R2/R3)
+        // PALETTE OVERRIDE: pure white system (paper/fog/line/ash) — ink/red untouched.
         ink: "#0B0B0B",
         coal: "#171717",
-        paper: "#F4F1EA",
-        fog: "#E7E3D8",
-        line: "#D8D3C6",
-        ash: "#6E6A62",
+        paper: "#FFFFFF",
+        fog: "#F5F5F5",
+        line: "#E4E4E4",
+        ash: "#6B6B6B", // 5.33:1 on #FFFFFF — AA for normal text
         // `red` is an object so `bg-red` (DEFAULT), `bg-red-deep` (deep) and the
         // starter's existing `text-red-500` error text all keep resolving.
         red: {

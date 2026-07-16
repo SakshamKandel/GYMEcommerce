@@ -1,0 +1,47 @@
+/*
+ * HOME — shared scroll-reveal keyframes (scoped to modules/home).
+ *
+ * States are driven by a data attribute set from JS:
+ *   (no attr)              → fully visible. This is the SSR / no-JS state, so
+ *                            content NEVER hides when JavaScript fails to run.
+ *   [data-reveal="hidden"] → parked below its resting spot, waiting for the
+ *                            IntersectionObserver (only ever set client-side,
+ *                            and only for elements not already on screen).
+ *   [data-reveal="in"]     → plays the rise animation once.
+ *
+ * Under prefers-reduced-motion every state renders static and visible.
+ */
+
+.item {
+  will-change: opacity, transform;
+}
+
+.item[data-reveal="hidden"] {
+  opacity: 0;
+  transform: translateY(2rem);
+}
+
+.item[data-reveal="in"] {
+  animation: sr-rise 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+@keyframes sr-rise {
+  from {
+    opacity: 0;
+    transform: translateY(2rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item[data-reveal="hidden"],
+  .item[data-reveal="in"] {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}

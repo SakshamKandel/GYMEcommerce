@@ -29,6 +29,10 @@ export default async function ProductPreview({
   const brand = product.collection?.title
   const isOnSale = cheapestPrice?.price_type === "sale"
 
+  // Second gallery shot (if the catalog carries one) crossfades in on hover.
+  // Falls back to a plain zoom when a product ships a single image (R11 seed).
+  const hoverImage = product.images?.[1]?.url
+
   // A product is out of stock only when EVERY variant is unpurchasable:
   // inventory-managed, no backorders, and zero available quantity.
   const variants = product.variants ?? []
@@ -52,6 +56,7 @@ export default async function ProductPreview({
             <Thumbnail
               thumbnail={product.thumbnail}
               images={product.images}
+              hoverImage={hoverImage}
               size="full"
               isFeatured={isFeatured}
               alt={brand ? `${brand} — ${product.title}` : product.title}
@@ -84,7 +89,7 @@ export default async function ProductPreview({
           </span>
         </div>
         {brand && (
-          <p className="mt-4 font-mono text-label uppercase tracking-label text-ash">
+          <p className="mt-4 font-mono text-label uppercase tracking-label text-ash transition-colors duration-200 ease-out group-hover:text-ink">
             {brand}
           </p>
         )}
@@ -96,7 +101,7 @@ export default async function ProductPreview({
         >
           {product.title}
         </h3>
-        <div className="mt-2 flex items-baseline gap-2">
+        <div className="mt-2 flex items-baseline gap-2 transition-transform duration-200 ease-out motion-safe:group-hover:translate-x-0.5">
           {cheapestPrice && <PreviewPrice price={cheapestPrice} />}
         </div>
       </article>

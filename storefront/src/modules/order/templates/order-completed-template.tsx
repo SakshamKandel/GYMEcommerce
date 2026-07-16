@@ -1,6 +1,7 @@
 import { cookies as nextCookies } from "next/headers"
 
 import CartTotals from "@modules/common/components/cart-totals"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import Marquee from "@modules/common/components/marquee"
 import TrustBadgeRow from "@modules/common/components/trust-badges"
 import PillButton from "@modules/common/components/pill-button"
@@ -10,6 +11,8 @@ import OnboardingCta from "@modules/order/components/onboarding-cta"
 import OrderDetails from "@modules/order/components/order-details"
 import ShippingDetails from "@modules/order/components/shipping-details"
 import PaymentDetails from "@modules/order/components/payment-details"
+import TrackingTimeline from "@modules/order/components/tracking-timeline"
+import { deriveTimelineFromOrder } from "@modules/order/lib/tracking"
 import { formatNPR } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
 
@@ -59,6 +62,21 @@ export default async function OrderCompletedTemplate({
           </div>
 
           <OrderDetails order={order} />
+
+          <div>
+            <div className="flex flex-wrap items-baseline justify-between gap-2 mb-4">
+              <h2 className="font-body text-h4 font-semibold text-ink">
+                Delivery progress
+              </h2>
+              <LocalizedClientLink
+                href="/track-order"
+                className="font-mono text-label-sm uppercase tracking-label text-ash underline-offset-4 hover:text-ink hover:underline"
+              >
+                Track order →
+              </LocalizedClientLink>
+            </div>
+            <TrackingTimeline steps={deriveTimelineFromOrder(order)} />
+          </div>
 
           <div>
             <h2 className="font-body text-h4 font-semibold text-ink mb-3">

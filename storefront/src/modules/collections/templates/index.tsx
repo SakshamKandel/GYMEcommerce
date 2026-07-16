@@ -59,6 +59,10 @@ export default async function CollectionTemplate({
     typeof collection.metadata?.banner_image === "string"
       ? collection.metadata.banner_image
       : undefined
+  const logoImage =
+    typeof collection.metadata?.logo_image === "string"
+      ? collection.metadata.logo_image
+      : undefined
   const productCount = collection.products?.length ?? 0
 
   return (
@@ -77,6 +81,20 @@ export default async function CollectionTemplate({
         )}
         <div className="absolute inset-0 bg-ink/55" aria-hidden="true" />
         <div className="relative z-10 content-container py-16 small:py-24">
+          {/* Brand logo on a paper plate — legible over any banner; the h1
+              below always renders, so text remains the guaranteed fallback. */}
+          {logoImage && (
+            <div className="mb-7 inline-flex items-center bg-paper px-5 py-3.5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {/* Ink silhouette: several source logos are white artwork that
+                  would vanish on the paper plate if rendered unfiltered. */}
+              <img
+                src={logoImage}
+                alt={`${collection.title} logo`}
+                className="h-10 w-auto max-w-[220px] object-contain [filter:brightness(0)] md:h-12"
+              />
+            </div>
+          )}
           <p className="mb-4 font-mono text-label uppercase tracking-label text-paper/80">
             Official range
             {productCount > 0 &&

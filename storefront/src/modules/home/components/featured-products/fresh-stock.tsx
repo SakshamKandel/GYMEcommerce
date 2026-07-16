@@ -2,12 +2,13 @@ import { HttpTypes } from "@medusajs/types"
 import { listProductsWithSort } from "@lib/data/products"
 import ProductPreview from "@modules/products/components/product-preview"
 import PillButton from "@modules/common/components/pill-button"
+import DragRail from "@modules/home/components/drag-rail"
 
 /**
- * HOME — Section 7: FRESH STOCK grid (REBUILD wrapper, per 03 §2.6).
- * 8 newest products via C's reskinned ProductPreview. Async server component —
- * the page wraps this in <Suspense> with SkeletonProductGrid so the hero paints instantly.
- * Designed empty state (never a bare grid — guardrail §4.0.4).
+ * HOME — FRESH STOCK carousel (user feedback: minimal page with carousels).
+ * 8 newest products in a DragRail carousel via ProductPreview. Async server
+ * component — the page wraps this in <Suspense> with SkeletonProductGrid so
+ * the hero paints instantly. Designed empty state (guardrail §4.0.4).
  */
 const FreshStock = async ({
   region,
@@ -43,16 +44,20 @@ const FreshStock = async ({
   }
 
   return (
-    <ul
-      className="grid grid-cols-2 gap-x-4 gap-y-10 small:grid-cols-3 medium:grid-cols-4"
-      data-testid="fresh-stock-grid"
-    >
-      {products.map((product) => (
-        <li key={product.id}>
-          <ProductPreview product={product} region={region} />
-        </li>
-      ))}
-    </ul>
+    <div data-testid="fresh-stock-grid">
+      <DragRail
+        label="Fresh stock"
+        itemClassName="w-[68vw] xsmall:w-[300px] md:w-[320px]"
+      >
+        {products.map((product) => (
+          <ProductPreview
+            key={product.id}
+            product={product}
+            region={region}
+          />
+        ))}
+      </DragRail>
+    </div>
   )
 }
 

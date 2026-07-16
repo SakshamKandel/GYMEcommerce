@@ -1,0 +1,13 @@
+/* Rotating authenticity seal — slow, continuous, killed under reduced motion. */
+
+@media (prefers-reduced-motion: no-preference) {
+  .seal {
+    animation: seal-spin 26s linear infinite;
+  }
+}
+
+@keyframes seal-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

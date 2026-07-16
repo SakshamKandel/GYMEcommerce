@@ -1,12 +1,12 @@
 import React, { Suspense } from "react"
 
-import ImageGallery from "@modules/products/components/image-gallery"
 import ProductActions from "@modules/products/components/product-actions"
-import ProductTabs from "@modules/products/components/product-tabs"
+import ProductGallery from "@modules/products/components/product-gallery"
+import ProductInfoSections from "@modules/products/components/product-info-sections"
 import RelatedProducts from "@modules/products/components/related-products"
 import ProductInfo from "@modules/products/templates/product-info"
 import Breadcrumb from "@modules/products/components/breadcrumb"
-import NutritionFacts from "@modules/products/components/nutrition-facts"
+import BuyBoxPerks from "@modules/products/components/buy-box-perks"
 import SplitFeature from "@modules/common/components/split-feature"
 import TrustBadgeRow from "@modules/common/components/trust-badges"
 import SkeletonRelatedProducts from "@modules/skeletons/templates/skeleton-related-products"
@@ -22,54 +22,11 @@ type ProductTemplateProps = {
   images: HttpTypes.StoreProductImage[]
 }
 
-// Persistent PDP trust badge — copy verbatim from master plan §3 / 05 §5.2.
-const AuthenticityBadge = () => (
-  <div className="flex items-start gap-2.5 border border-ink/20 px-3 py-2.5">
-    <svg
-      viewBox="0 0 16 16"
-      className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      aria-hidden="true"
-    >
-      <path d="M3 8l3.5 3.5L13 4" strokeLinecap="square" />
-    </svg>
-    <span className="font-mono text-label-sm uppercase tracking-label text-ash">
-      100% Authentic — Sourced from Authorized Distributors
-    </span>
-  </div>
-)
-
-// R8: single-source delivery/COD strings, reused verbatim across the site.
-const DeliveryStrip = () => {
-  const items = [
-    { label: "Inside Kathmandu Valley", value: "Delivered in 1–2 days" },
-    { label: "Outside Valley", value: "Delivered in 3–5 days" },
-    { label: "Payment", value: "Cash on Delivery, nationwide" },
-    { label: "Shipping", value: "Flat rate shown at checkout" },
-  ]
-
-  return (
-    <section className="bg-fog" data-testid="product-delivery-strip">
-      <div className="shell py-10">
-        <dl className="grid grid-cols-2 divide-y divide-ink/15 border-y border-ink/15 md:grid-cols-4 md:divide-x md:divide-y-0">
-          {items.map((item) => (
-            <div key={item.label} className="px-5 py-6 md:px-6">
-              <dt className="font-mono text-label-sm uppercase tracking-label text-ash">
-                {item.label}
-              </dt>
-              <dd className="mt-2 font-body text-body-sm font-semibold text-ink">
-                {item.value}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </section>
-  )
-}
-
+/**
+ * PDP layout — Amazon-grade two-column split in the editorial identity:
+ * scrollable gallery left, sticky buy box right (below the 64px nav).
+ * Mobile is gallery-first, then the buy box, then anchored info sections.
+ */
 const ProductTemplate: React.FC<ProductTemplateProps> = ({
   product,
   region,
@@ -82,24 +39,26 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
 
   return (
     <>
-      <div className="content-container pt-6" data-testid="product-breadcrumb-container">
+      <div
+        className="content-container pt-6"
+        data-testid="product-breadcrumb-container"
+      >
         <Breadcrumb product={product} />
       </div>
 
       <div
-        className="content-container relative flex flex-col py-6 small:flex-row small:items-start small:gap-x-8"
+        className="content-container grid grid-cols-1 gap-x-10 gap-y-8 py-6 pb-16 small:grid-cols-[minmax(0,1fr)_400px] small:gap-x-14 small:py-10 small:pb-24 medium:grid-cols-[minmax(0,1fr)_420px]"
         data-testid="product-container"
       >
-        <div className="flex w-full flex-col gap-y-8 py-8 small:sticky small:top-32 small:max-w-[340px] small:py-0">
+        {/* Gallery — scrolls with the page. */}
+        <div className="relative w-full min-w-0">
+          <ProductGallery images={images} title={product.title} />
+        </div>
+
+        {/* Buy box — sticky on desktop, self-start so it can pin. */}
+        <div className="flex w-full flex-col gap-y-6 small:sticky small:top-24 small:self-start">
           <ProductInfo product={product} />
-          <ProductTabs product={product} />
-        </div>
 
-        <div className="relative block w-full">
-          <ImageGallery images={images} />
-        </div>
-
-        <div className="flex w-full flex-col gap-y-6 py-8 small:sticky small:top-32 small:max-w-[340px] small:py-0">
           <Suspense
             fallback={
               <ProductActions
@@ -112,16 +71,15 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
             <ProductActionsWrapper id={product.id} region={region} />
           </Suspense>
 
-          <div className="flex flex-col gap-y-4">
-            <TrustBadgeRow compact />
-            <AuthenticityBadge />
-          </div>
+          <BuyBoxPerks productTitle={product.title} />
+
+          <TrustBadgeRow compact />
         </div>
       </div>
 
-      <NutritionFacts product={product} />
-
-      <DeliveryStrip />
+      {/* Anchored info sections: Description · Supplement facts · How to use ·
+          Delivery & COD · Authenticity. */}
+      <ProductInfoSections product={product} />
 
       {/* TODO(real-photography): swap imageSrc for a real warehouse/sealed-stock shot. */}
       <SplitFeature

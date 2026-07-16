@@ -7,9 +7,12 @@ import { HttpTypes } from "@medusajs/types"
 export default function ProductPrice({
   product,
   variant,
+  perServingLabel,
 }: {
   product: HttpTypes.StoreProduct
   variant?: HttpTypes.StoreProductVariant
+  /** Precomputed "Rs. X / serving" line — rendered only when present. */
+  perServingLabel?: string
 }) {
   const { cheapestPrice, variantPrice } = getProductPrice({
     product,
@@ -19,7 +22,7 @@ export default function ProductPrice({
   const selectedPrice = variant ? variantPrice : cheapestPrice
 
   if (!selectedPrice) {
-    return <div className="block h-9 w-32 animate-pulse bg-fog" />
+    return <div className="block h-12 w-40 animate-pulse bg-fog" />
   }
 
   const isNpr = selectedPrice.currency_code?.toLowerCase() === "npr"
@@ -35,16 +38,19 @@ export default function ProductPrice({
   const isSale = selectedPrice.price_type === "sale"
 
   return (
-    <div className="flex flex-col gap-y-1.5" data-testid="product-price-block">
+    <div className="flex flex-col gap-y-2" data-testid="product-price-block">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <span
-          className={clx("font-body text-h2 font-bold leading-none", {
-            "text-red": isSale,
-            "text-ink": !isSale,
-          })}
+          className={clx(
+            "font-body text-h1 font-bold leading-none tracking-tight",
+            {
+              "text-red": isSale,
+              "text-ink": !isSale,
+            }
+          )}
         >
           {!variant && (
-            <span className="mr-1 align-baseline font-mono text-label uppercase tracking-label text-ash">
+            <span className="mr-2 align-baseline font-mono text-label uppercase tracking-label text-ash">
               From
             </span>
           )}
@@ -75,9 +81,24 @@ export default function ProductPrice({
         )}
       </div>
 
-      <span className="font-mono text-label-sm uppercase tracking-label text-ash">
-        Includes 13% VAT
-      </span>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <span className="font-mono text-label-sm uppercase tracking-label text-ash">
+          Includes 13% VAT
+        </span>
+        {perServingLabel && (
+          <>
+            <span aria-hidden="true" className="text-line">
+              |
+            </span>
+            <span
+              className="font-mono text-label-sm uppercase tracking-label text-ink"
+              data-testid="product-per-serving-price"
+            >
+              {perServingLabel}
+            </span>
+          </>
+        )}
+      </div>
     </div>
   )
 }

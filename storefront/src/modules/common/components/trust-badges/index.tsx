@@ -69,10 +69,12 @@ const TrustBadgeRow = ({ compact, items, className }: TrustBadgeRowProps) => {
   const badges = items?.length ? items : DEFAULT_ITEMS
 
   return (
+    // Borderless minimal row (user feedback): plain icon + label pairs with
+    // generous spacing — no boxes, no hover chrome.
     <ul
       className={clx(
         "flex flex-wrap items-center",
-        compact ? "gap-2" : "gap-3",
+        compact ? "gap-x-5 gap-y-2" : "gap-x-8 gap-y-3",
         className
       )}
     >
@@ -80,8 +82,8 @@ const TrustBadgeRow = ({ compact, items, className }: TrustBadgeRowProps) => {
         <li
           key={i}
           className={clx(
-            "inline-flex items-center gap-2 border border-ink/20 font-mono uppercase tracking-label text-ash",
-            compact ? "px-2.5 py-1 text-[0.625rem]" : "px-3 py-1.5 text-label-sm"
+            "inline-flex items-center gap-2 font-mono uppercase tracking-label text-ash",
+            compact ? "text-[0.625rem]" : "text-label-sm"
           )}
         >
           <span className="text-ink">{badge.icon}</span>

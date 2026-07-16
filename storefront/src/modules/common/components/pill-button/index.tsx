@@ -20,7 +20,7 @@ export type PillButtonProps = {
 }
 
 const BASE_CLASSES =
-  "inline-flex items-center gap-3 rounded-full px-7 py-3.5 font-body text-sm font-semibold uppercase tracking-wide transition-transform duration-150 ease-out hover:-translate-y-0.5 active:translate-y-0 will-change-transform group"
+  "inline-flex items-center gap-3 rounded-full px-7 py-3.5 font-body text-sm font-semibold uppercase tracking-wide transition-transform duration-150 ease-out will-change-transform group disabled:cursor-not-allowed disabled:opacity-60 motion-safe:hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0"
 
 const VARIANT_CLASSES: Record<PillButtonProps["variant"], string> = {
   primary: "bg-ink text-paper hover:bg-coal",
@@ -33,7 +33,7 @@ const VARIANT_CLASSES: Record<PillButtonProps["variant"], string> = {
 }
 
 const ArrowGlyph = () => (
-  <span className="grid h-5 w-5 place-items-center transition-transform duration-150 ease-out group-hover:translate-x-1">
+  <span className="grid h-5 w-5 place-items-center transition-transform duration-150 ease-out motion-safe:group-hover:translate-x-1">
     <svg
       viewBox="0 0 16 16"
       className="h-4 w-4"

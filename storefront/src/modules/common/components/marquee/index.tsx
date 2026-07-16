@@ -30,6 +30,15 @@ const SEPARATOR_CLASSES: Record<NonNullable<MarqueeProps["variant"]>, string> =
     outline: "text-red",
   }
 
+// Edge-fade overlays dissolve the text into the band colour at both ends, so
+// items never hard-cut at the viewport edge. Gradients use palette tokens (the
+// band's own colour) — never a hardcoded hex.
+const EDGE_FROM: Record<NonNullable<MarqueeProps["variant"]>, string> = {
+  red: "from-red",
+  black: "from-ink",
+  outline: "from-paper",
+}
+
 const Row = ({
   items,
   separator,
@@ -92,6 +101,20 @@ const Marquee = ({
           hidden
         />
       </div>
+      <div
+        aria-hidden="true"
+        className={clx(
+          "pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r to-transparent md:w-24",
+          EDGE_FROM[variant]
+        )}
+      />
+      <div
+        aria-hidden="true"
+        className={clx(
+          "pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l to-transparent md:w-24",
+          EDGE_FROM[variant]
+        )}
+      />
     </div>
   )
 }

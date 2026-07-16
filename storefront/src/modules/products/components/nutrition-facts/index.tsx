@@ -3,6 +3,7 @@ import { clx } from "@medusajs/ui"
 
 type NutritionFactsProps = {
   product: HttpTypes.StoreProduct
+  className?: string
 }
 
 // Batch/expiry fallback — binding string from master plan §2 / 05 §5.2.
@@ -22,14 +23,15 @@ const metaString = (
 }
 
 /**
- * Supplement-label style spec sheet.
+ * FDA-label style "SUPPLEMENT FACTS" panel.
  * Reads exactly the four seeded metadata keys (R11):
  *   protein_per_serving · servings · origin_country · flavor_notes
  * plus Brand / Category / Net weight derived from product data. Every row is
  * render-if-present; the batch/expiry row is always rendered as a static
- * fallback so the block is never empty.
+ * fallback so the panel is never empty. Thick ink rules + mono numbers +
+ * zebra fog rows per the spec-sheet identity.
  */
-const NutritionFacts = ({ product }: NutritionFactsProps) => {
+const NutritionFacts = ({ product, className }: NutritionFactsProps) => {
   const rows: { label: string; value: string }[] = []
 
   const push = (label: string, value?: string) => {
@@ -48,65 +50,54 @@ const NutritionFacts = ({ product }: NutritionFactsProps) => {
   push("Country of origin", metaString(product.metadata, "origin_country"))
 
   return (
-    <section
-      aria-labelledby="product-specs-heading"
+    <div
       data-testid="product-nutrition-facts"
-      className="shell section-y"
+      className={clx("border-2 border-ink bg-paper", className)}
     >
-      <div className="mx-auto max-w-3xl">
-        <p className="mb-4 font-mono text-label uppercase tracking-label text-red">
-          The spec sheet
+      {/* Panel masthead */}
+      <div className="px-4 pb-3 pt-4 xsmall:px-5">
+        <p className="font-display text-3xl uppercase leading-none text-ink xsmall:text-4xl">
+          Supplement facts
         </p>
-        <h2
-          id="product-specs-heading"
-          className="mb-8 font-display text-display-2 uppercase text-ink"
-        >
-          Product details
-        </h2>
+        <p className="mt-2 font-mono text-label-sm uppercase tracking-label text-ash">
+          {product.title}
+        </p>
+      </div>
 
-        <dl className="border border-ink">
-          <div className="grid grid-cols-[1fr_1.3fr] bg-ink text-paper">
-            <p className="px-4 py-3 font-mono text-label-sm uppercase tracking-label">
-              Specification
-            </p>
-            <p className="px-4 py-3 font-mono text-label-sm uppercase tracking-label">
-              Detail
-            </p>
-          </div>
+      {/* Thick FDA rule */}
+      <div aria-hidden="true" className="mx-4 h-2 bg-ink xsmall:mx-5" />
 
-          {rows.map((row, i) => (
-            <div
-              key={row.label}
-              className={clx(
-                "grid grid-cols-[1fr_1.3fr] border-t border-line",
-                i % 2 === 1 && "bg-fog"
-              )}
-            >
-              <dt className="px-4 py-3 font-mono text-label-sm uppercase tracking-label text-ash">
-                {row.label}
-              </dt>
-              <dd className="px-4 py-3 font-mono text-sm text-ink">
-                {row.value}
-              </dd>
-            </div>
-          ))}
-
+      <dl className="px-4 py-2 xsmall:px-5">
+        {rows.map((row, i) => (
           <div
+            key={row.label}
             className={clx(
-              "grid grid-cols-[1fr_1.3fr] border-t border-line",
-              rows.length % 2 === 1 && "bg-fog"
+              "-mx-2 flex items-baseline justify-between gap-6 border-b border-line px-2 last:border-b-0",
+              i % 2 === 1 && "bg-fog"
             )}
           >
-            <dt className="px-4 py-3 font-mono text-label-sm uppercase tracking-label text-ash">
-              Batch &amp; expiry
+            <dt className="py-2.5 font-mono text-label-sm uppercase tracking-label text-ash">
+              {row.label}
             </dt>
-            <dd className="px-4 py-3 font-body text-body-sm text-ink">
-              {BATCH_FALLBACK}
+            <dd className="py-2.5 text-right font-mono text-sm font-bold text-ink">
+              {row.value}
             </dd>
           </div>
-        </dl>
+        ))}
+      </dl>
+
+      {/* Medium rule before the footnote */}
+      <div aria-hidden="true" className="mx-4 h-1 bg-ink xsmall:mx-5" />
+
+      <div className="px-4 py-4 xsmall:px-5">
+        <p className="font-mono text-label-sm uppercase tracking-label text-ink">
+          Batch &amp; expiry
+        </p>
+        <p className="mt-1.5 font-body text-body-sm leading-relaxed text-ash">
+          {BATCH_FALLBACK}
+        </p>
       </div>
-    </section>
+    </div>
   )
 }
 

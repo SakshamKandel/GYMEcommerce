@@ -119,7 +119,15 @@ export default async function ProductPage(props: Props) {
 
   const pricedProduct = await listProducts({
     countryCode: params.countryCode,
-    queryParams: { handle: params.handle },
+    queryParams: {
+      handle: params.handle,
+      // Additive (+/*) fields keep the listProducts defaults and pull in
+      // categories, which the breadcrumb, supplement-facts panel, and the
+      // "Similar in {category}" related rail all need (default response
+      // returns categories: null).
+      fields:
+        "*variants.calculated_price,+variants.inventory_quantity,*variants.images,+metadata,+tags,*collection,*categories",
+    },
   }).then(({ response }) => response.products[0])
 
   const images = getImagesForVariant(pricedProduct, selectedVariantId)

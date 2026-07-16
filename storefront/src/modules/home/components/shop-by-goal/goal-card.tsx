@@ -4,14 +4,16 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 export type Goal = {
   label: string
   sub: string
+  hook: string
   href: string
   image: string
 }
 
 /**
- * Square editorial goal card: grayscale photo that reveals colour on hover
- * (.img-editorial-hover + group), paper label + advancing arrow over an ink scrim.
- * Whole card is one link. Sharp corners per design identity.
+ * Square editorial goal card — deliberately STABLE per user feedback:
+ * no lift/scale, no image zoom, no sweep bars. The only hover feedback is
+ * the grayscale photo warming to colour and the arrow glyph sliding — both
+ * subtle, layout-stable, and reduced-motion safe.
  */
 const GoalCard = ({ goal }: { goal: Goal }) => {
   return (
@@ -28,27 +30,33 @@ const GoalCard = ({ goal }: { goal: Goal }) => {
         sizes="(max-width: 768px) 78vw, 25vw"
         className="img-editorial-hover object-cover"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/25 to-transparent" />
-      <div className="relative z-10 flex items-end justify-between gap-3 p-5">
-        <div>
-          <p className="mb-1 font-mono text-label-sm uppercase tracking-label text-paper/70">
-            {goal.sub}
-          </p>
-          <h3 className="font-display text-2xl uppercase leading-none text-paper">
-            {goal.label}
-          </h3>
-        </div>
-        <span className="grid h-8 w-8 shrink-0 place-items-center text-paper transition-transform duration-150 ease-out group-hover:translate-x-1">
+      <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent" />
+
+      <div className="relative z-10 p-5 pb-6">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="mb-1 font-mono text-label-sm uppercase tracking-label text-paper/70">
+              {goal.sub}
+            </p>
+            <h3 className="font-display text-2xl uppercase leading-none text-paper md:text-3xl">
+              {goal.label}
+            </h3>
+          </div>
+          {/* Plain arrow glyph — slides forward on hover, no box. */}
           <svg
             viewBox="0 0 16 16"
-            className="h-5 w-5 text-red"
+            className="mb-0.5 h-5 w-5 shrink-0 text-paper transition-transform duration-200 ease-out group-hover:translate-x-1 group-hover:text-red motion-reduce:transition-none motion-reduce:group-hover:translate-x-0"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
+            aria-hidden="true"
           >
             <path d="M3 8h10M9 4l4 4-4 4" strokeLinecap="square" />
           </svg>
-        </span>
+        </div>
+        <p className="mt-3 max-w-[26ch] font-body text-body-sm leading-snug text-paper/75">
+          {goal.hook}
+        </p>
       </div>
     </LocalizedClientLink>
   )

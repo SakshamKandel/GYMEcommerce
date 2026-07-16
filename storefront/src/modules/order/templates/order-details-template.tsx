@@ -7,6 +7,8 @@ import Items from "@modules/order/components/items"
 import OrderDetails from "@modules/order/components/order-details"
 import OrderSummary from "@modules/order/components/order-summary"
 import ShippingDetails from "@modules/order/components/shipping-details"
+import TrackingTimeline from "@modules/order/components/tracking-timeline"
+import { deriveTimelineFromOrder } from "@modules/order/lib/tracking"
 import React from "react"
 
 type OrderDetailsTemplateProps = {
@@ -40,6 +42,12 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
         data-testid="order-details-container"
       >
         <OrderDetails order={order} showStatus />
+        <div>
+          <h2 className="font-body text-h4 font-semibold text-ink mb-4">
+            Delivery progress
+          </h2>
+          <TrackingTimeline steps={deriveTimelineFromOrder(order)} />
+        </div>
         <Items order={order} />
         <ShippingDetails order={order} />
         <OrderSummary order={order} />

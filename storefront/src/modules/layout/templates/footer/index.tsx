@@ -7,6 +7,7 @@ const WHATSAPP_NUMBER =
 
 const FOOTER_LINKS = [
   { label: "All products", href: "/store" },
+  { label: "Track order", href: "/track-order" },
   { label: "Authenticity", href: "/authenticity" },
   { label: "Shipping", href: "/shipping" },
   { label: "Returns", href: "/returns" },

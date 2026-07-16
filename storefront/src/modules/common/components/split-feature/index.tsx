@@ -59,17 +59,18 @@ const SplitFeature = ({
         </div>
         <div
           className={clx(
-            "relative overflow-hidden rounded-photo bg-coal",
+            "group relative overflow-hidden rounded-photo bg-coal",
             compact ? "aspect-[16/10]" : "aspect-[4/5]",
             reverse && "md:order-1"
           )}
         >
-          {/* Editorial photos are grayscale by law (02 §7); decorative alt="" unless meaningful. */}
+          {/* Editorial photos are grayscale by law (02 §7); decorative alt="" unless meaningful.
+              Slow, contained zoom on hover — motion-safe so reduced-motion stays static. */}
           <img
             src={imageSrc}
             alt={imageAlt}
             loading="lazy"
-            className="img-editorial h-full w-full object-cover"
+            className="img-editorial h-full w-full object-cover motion-safe:transition-transform motion-safe:duration-700 motion-safe:ease-out motion-safe:group-hover:scale-[1.04]"
           />
         </div>
       </div>

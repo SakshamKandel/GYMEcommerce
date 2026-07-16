@@ -1,7 +1,7 @@
 import { HttpTypes } from "@medusajs/types"
 import { listProductsWithSort } from "@lib/data/products"
 import ProductPreview from "@modules/products/components/product-preview"
-import HScrollRail from "@modules/common/components/hscroll-rail"
+import DragRail from "@modules/home/components/drag-rail"
 import PillButton from "@modules/common/components/pill-button"
 
 /**
@@ -56,11 +56,11 @@ const BestSellers = async ({
   }
 
   return (
-    <HScrollRail itemClassName="w-[64vw] xsmall:w-[280px]">
+    <DragRail itemClassName="w-[64vw] xsmall:w-[280px]" label="Best sellers">
       {products.map((product) => (
         <ProductPreview key={product.id} product={product} region={region} />
       ))}
-    </HScrollRail>
+    </DragRail>
   )
 }
 
