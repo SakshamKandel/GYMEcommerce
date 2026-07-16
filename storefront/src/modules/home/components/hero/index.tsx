@@ -54,10 +54,15 @@ const Hero = () => {
           Protein &amp; sports nutrition · Nepal
         </p>
 
-        <h1 className="font-display text-display-hero uppercase leading-[0.85]">
-          Every brand.
-          <br />
-          <span className="text-red">One shop.</span>
+        {/* Two-register headline: solid line + outlined line with a single
+            red accent — quieter than a full red block. */}
+        <h1 className="font-display uppercase">
+          <span className="block text-display-hero leading-[0.85]">
+            Every brand.
+          </span>
+          <span className="text-stroke block text-display-hero leading-[0.85]">
+            One shop<span className="text-red [-webkit-text-stroke:0]">.</span>
+          </span>
         </h1>
 
         <div className="mt-10 flex items-center justify-center">

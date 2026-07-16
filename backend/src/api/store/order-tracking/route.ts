@@ -54,6 +54,7 @@ const ORDER_FIELDS = [
   "shipping_tax_total",
   "created_at",
   "updated_at",
+  "canceled_at",
   "items.*",
   "items.tax_lines.*",
   "items.adjustments.*",
@@ -68,7 +69,7 @@ const ORDER_FIELDS = [
 ]
 
 type TimelineStep = {
-  key: "placed" | "confirmed" | "shipped" | "delivered"
+  key: "placed" | "confirmed" | "shipped" | "delivered" | "canceled"
   label: string
   done: boolean
   at: string | null
@@ -117,6 +118,27 @@ function firstDate(dates: (string | Date | null | undefined)[]): string | null {
  * problem in the UI.
  */
 function buildTimeline(order: any, fulfillmentStatus: string): TimelineStep[] {
+  // A canceled order collapses the journey — the storefront renders the
+  // terminal "canceled" node in red.
+  if (order.status === "canceled" || order.canceled_at) {
+    return [
+      {
+        key: "placed",
+        label: "Order placed",
+        done: true,
+        at: order.created_at ? new Date(order.created_at).toISOString() : null,
+      },
+      {
+        key: "canceled",
+        label: "Canceled",
+        done: true,
+        at: order.canceled_at
+          ? new Date(order.canceled_at).toISOString()
+          : null,
+      },
+    ]
+  }
+
   const fulfillments: any[] = order.fulfillments ?? []
   const active = fulfillments.filter((f) => !f.canceled_at)
 

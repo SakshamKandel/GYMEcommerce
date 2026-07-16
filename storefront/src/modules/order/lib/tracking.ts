@@ -1,13 +1,14 @@
 import { HttpTypes } from "@medusajs/types"
 
 /**
- * One node of the 4-step delivery journey shown on the tracking timeline.
+ * One node of the delivery journey shown on the tracking timeline.
  * The backend `/store/order-tracking` route returns this exact shape; the
  * confirmation + account order pages derive an equivalent array locally from a
  * full StoreOrder so the same <TrackingTimeline> renders everywhere.
+ * A canceled order collapses the journey to [placed, canceled].
  */
 export type TrackingStep = {
-  key: "placed" | "confirmed" | "shipped" | "delivered"
+  key: "placed" | "confirmed" | "shipped" | "delivered" | "canceled"
   label: string
   done: boolean
   at: string | null
@@ -60,30 +61,104 @@ const SHIPPED_STATUSES = [
 const DELIVERED_STATUSES = ["delivered", "partially_delivered"]
 const CONFIRMED_STATUSES = ["fulfilled", "partially_fulfilled"]
 
+/** Human refund note from Medusa's payment_status — null when not refunded. */
+export function refundLabel(paymentStatus?: string | null): string | null {
+  if (paymentStatus === "refunded") return "Refunded"
+  if (paymentStatus === "partially_refunded") return "Partially refunded"
+  return null
+}
+
+/** True when the order is canceled in Medusa. */
+export function isOrderCanceled(
+  order: Pick<HttpTypes.StoreOrder, "status"> & { canceled_at?: string | null }
+): boolean {
+  return order.status === "canceled" || Boolean(order.canceled_at)
+}
+
+type TimelineSource = Pick<
+  HttpTypes.StoreOrder,
+  "created_at" | "fulfillment_status"
+> & {
+  status?: string
+  canceled_at?: string | Date | null
+  fulfillments?:
+    | {
+        canceled_at?: string | Date | null
+        created_at?: string | Date | null
+        packed_at?: string | Date | null
+        shipped_at?: string | Date | null
+        delivered_at?: string | Date | null
+      }[]
+    | null
+}
+
+const firstDate = (
+  dates: (string | Date | null | undefined)[]
+): string | null => {
+  const valid = dates
+    .filter((d): d is string | Date => Boolean(d))
+    .map((d) => new Date(d))
+    .filter((d) => !isNaN(d.getTime()))
+    .sort((a, b) => a.getTime() - b.getTime())
+  return valid.length ? valid[0].toISOString() : null
+}
+
 /**
- * Derive the 4-step timeline from a full StoreOrder (confirmation + account
- * order pages) WITHOUT an extra fetch — purely from the already-computed
- * `fulfillment_status` and `created_at`. Mirrors the backend derivation so the
- * guest tracking view and the logged-in views stay consistent.
+ * Derive the delivery timeline from a StoreOrder (confirmation + account
+ * order pages) WITHOUT an extra fetch. Sources every Medusa state:
+ *  - order.status/canceled_at → collapsed [placed, canceled] journey,
+ *  - fulfillments' packed/shipped/delivered timestamps → step dates,
+ *  - aggregated fulfillment_status → step completion fallback.
+ * Mirrors the backend /store/order-tracking derivation so the guest tracking
+ * view and the logged-in views stay consistent.
  */
-export function deriveTimelineFromOrder(
-  order: Pick<HttpTypes.StoreOrder, "created_at" | "fulfillment_status">
-): TrackingStep[] {
+export function deriveTimelineFromOrder(order: TimelineSource): TrackingStep[] {
+  const placedAt = order.created_at ? String(order.created_at) : null
+
+  if (isOrderCanceled(order as any)) {
+    return [
+      { key: "placed", label: "Order placed", done: true, at: placedAt },
+      {
+        key: "canceled",
+        label: "Canceled",
+        done: true,
+        at: order.canceled_at ? String(order.canceled_at) : null,
+      },
+    ]
+  }
+
   const fs = order.fulfillment_status ?? "not_fulfilled"
-  const shipped = SHIPPED_STATUSES.includes(fs)
-  const delivered = DELIVERED_STATUSES.includes(fs)
-  const confirmed = shipped || delivered || CONFIRMED_STATUSES.includes(fs)
+  const active = (order.fulfillments ?? []).filter((f) => !f.canceled_at)
+
+  const packedAt = firstDate(active.map((f) => f.packed_at ?? f.created_at))
+  const shippedAt = firstDate(active.map((f) => f.shipped_at))
+  const deliveredAt = firstDate(active.map((f) => f.delivered_at))
+
+  const shipped = Boolean(shippedAt) || SHIPPED_STATUSES.includes(fs)
+  const delivered = Boolean(deliveredAt) || DELIVERED_STATUSES.includes(fs)
+  const confirmed =
+    active.length > 0 || shipped || delivered || CONFIRMED_STATUSES.includes(fs)
 
   return [
+    { key: "placed", label: "Order placed", done: true, at: placedAt },
     {
-      key: "placed",
-      label: "Order placed",
-      done: true,
-      at: order.created_at ? String(order.created_at) : null,
+      key: "confirmed",
+      label: "Confirmed",
+      done: confirmed,
+      at: confirmed ? packedAt : null,
     },
-    { key: "confirmed", label: "Confirmed", done: confirmed, at: null },
-    { key: "shipped", label: "Shipped", done: shipped, at: null },
-    { key: "delivered", label: "Delivered", done: delivered, at: null },
+    {
+      key: "shipped",
+      label: "Shipped",
+      done: shipped,
+      at: shipped ? shippedAt : null,
+    },
+    {
+      key: "delivered",
+      label: "Delivered",
+      done: delivered,
+      at: delivered ? deliveredAt : null,
+    },
   ]
 }
 

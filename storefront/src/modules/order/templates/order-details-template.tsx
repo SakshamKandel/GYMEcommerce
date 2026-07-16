@@ -8,7 +8,10 @@ import OrderDetails from "@modules/order/components/order-details"
 import OrderSummary from "@modules/order/components/order-summary"
 import ShippingDetails from "@modules/order/components/shipping-details"
 import TrackingTimeline from "@modules/order/components/tracking-timeline"
-import { deriveTimelineFromOrder } from "@modules/order/lib/tracking"
+import {
+  deriveTimelineFromOrder,
+  refundLabel,
+} from "@modules/order/lib/tracking"
 import React from "react"
 
 type OrderDetailsTemplateProps = {
@@ -47,6 +50,12 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
             Delivery progress
           </h2>
           <TrackingTimeline steps={deriveTimelineFromOrder(order)} />
+          {refundLabel(order.payment_status) && (
+            <p className="mt-4 inline-flex items-center gap-2 bg-fog px-3 py-2 font-mono text-label-sm uppercase tracking-label text-ink">
+              <span className="h-2 w-2 rounded-full bg-red" aria-hidden="true" />
+              {refundLabel(order.payment_status)}
+            </p>
+          )}
         </div>
         <Items order={order} />
         <ShippingDetails order={order} />

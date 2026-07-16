@@ -2,7 +2,7 @@ import { clx } from "@medusajs/ui"
 import { formatNPR } from "@lib/util/money"
 import Thumbnail from "@modules/products/components/thumbnail"
 import TrackingTimeline from "@modules/order/components/tracking-timeline"
-import { TrackedOrder } from "@modules/order/lib/tracking"
+import { refundLabel, TrackedOrder } from "@modules/order/lib/tracking"
 
 const WHATSAPP_NUMBER =
   process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "977XXXXXXXXXX" // TODO(business-contact)
@@ -32,6 +32,8 @@ const headlineFor = (order: TrackedOrder): string => {
   const done = order.timeline.filter((s) => s.done)
   const last = done[done.length - 1]?.key
   switch (last) {
+    case "canceled":
+      return "This order was canceled"
     case "delivered":
       return "Delivered — thank you!"
     case "shipped":
@@ -51,6 +53,7 @@ type TrackingResultProps = {
 
 const TrackingResult = ({ order, onReset }: TrackingResultProps) => {
   const isPaid = PAID_STATUSES.includes(order.payment_status)
+  const isCanceled = order.timeline.some((s) => s.key === "canceled")
   const eta = etaForMethod(order.shipping_method?.name)
   const address = order.shipping_address
 
@@ -74,39 +77,62 @@ const TrackingResult = ({ order, onReset }: TrackingResultProps) => {
 
       {/* Timeline */}
       <TrackingTimeline steps={order.timeline} data-testid="tracking-timeline" />
+      {refundLabel(order.payment_status) && (
+        <p className="-mt-4 inline-flex items-center gap-2 self-start bg-fog px-3 py-2 font-mono text-label-sm uppercase tracking-label text-ink">
+          <span className="h-2 w-2 rounded-full bg-red" aria-hidden="true" />
+          {refundLabel(order.payment_status)}
+        </p>
+      )}
 
-      {/* COD / paid callout */}
-      <div
-        className={clx(
-          "border px-6 py-6 text-center",
-          isPaid
-            ? "border-line bg-fog text-ink"
-            : "border-ink bg-ink text-paper"
-        )}
-        data-testid="tracking-cod-callout"
-      >
-        <p
-          className={clx(
-            "font-mono text-label uppercase tracking-label mb-2",
-            isPaid ? "text-ash" : "text-paper/70"
-          )}
+      {/* COD / paid / canceled callout */}
+      {isCanceled ? (
+        <div
+          className="border border-line bg-fog px-6 py-6 text-center text-ink"
+          data-testid="tracking-cod-callout"
         >
-          {isPaid ? "Amount paid" : "Amount due on delivery"}
-        </p>
-        <p className="font-display text-4xl md:text-5xl uppercase leading-none">
-          {formatNPR(order.totals.total)}
-        </p>
-        <p
+          <p className="mb-2 font-mono text-label uppercase tracking-label text-ash">
+            Order canceled
+          </p>
+          <p className="font-body text-body-sm text-ash">
+            Nothing is due — this order will not be delivered.
+            {refundLabel(order.payment_status)
+              ? " Your payment has been refunded."
+              : ""}
+          </p>
+        </div>
+      ) : (
+        <div
           className={clx(
-            "mt-3 font-body text-body-sm",
-            isPaid ? "text-ash" : "text-paper/70"
+            "border px-6 py-6 text-center",
+            isPaid
+              ? "border-line bg-fog text-ink"
+              : "border-ink bg-ink text-paper"
           )}
+          data-testid="tracking-cod-callout"
         >
-          {isPaid
-            ? "This order has been paid in full."
-            : "Pay the rider in cash when your order arrives — no advance payment needed."}
-        </p>
-      </div>
+          <p
+            className={clx(
+              "font-mono text-label uppercase tracking-label mb-2",
+              isPaid ? "text-ash" : "text-paper/70"
+            )}
+          >
+            {isPaid ? "Amount paid" : "Amount due on delivery"}
+          </p>
+          <p className="font-display text-4xl md:text-5xl uppercase leading-none">
+            {formatNPR(order.totals.total)}
+          </p>
+          <p
+            className={clx(
+              "mt-3 font-body text-body-sm",
+              isPaid ? "text-ash" : "text-paper/70"
+            )}
+          >
+            {isPaid
+              ? "This order has been paid in full."
+              : "Pay the rider in cash when your order arrives — no advance payment needed."}
+          </p>
+        </div>
+      )}
 
       {/* Items */}
       <div>

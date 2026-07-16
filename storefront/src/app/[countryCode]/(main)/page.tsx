@@ -6,7 +6,6 @@ import { listCollections } from "@lib/data/collections"
 
 import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
-import Marquee from "@modules/common/components/marquee"
 import TrustBadgeRow from "@modules/common/components/trust-badges"
 
 import Hero from "@modules/home/components/hero"
@@ -23,17 +22,6 @@ export const metadata: Metadata = {
   description:
     "Nepal's multi-brand supplement store. Genuine whey, mass gainers, creatine, pre-workout & more from the world's top brands — 100% authentic, Cash on Delivery nationwide.",
 }
-
-// Category ticker (03 §2.4 exact list — no price/policy claims here).
-const CATEGORY_TICKER = [
-  "Whey",
-  "Creatine",
-  "Mass Gainer",
-  "Pre-Workout",
-  "BCAA",
-  "Protein Bars",
-  "Multivitamins",
-]
 
 /** Small mono "VIEW ALL →" section-header action link. */
 const ViewAllLink = ({ href, label }: { href: string; label: string }) => (
@@ -101,13 +89,10 @@ export default async function Home(props: {
 
   return (
     <>
-      {/* 1 · HERO — kinetic headline reveal, Ken-Burns photo, scroll cue */}
+      {/* 1 · HERO — minimal media carousel */}
       <Hero />
 
-      {/* 2 · RED CATEGORY MARQUEE — hard cut straight out of the hero */}
-      <Marquee items={CATEGORY_TICKER} variant="red" separator="✱" />
-
-      {/* 3 · INTRO STATEMENT */}
+      {/* 2 · INTRO STATEMENT */}
       <IntroStatement />
 
       {/* 4 · STATS ROW — numbers count up in view */}

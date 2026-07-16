@@ -20,7 +20,20 @@ const CheckGlyph = () => (
   </svg>
 )
 
-type NodeState = "done" | "current" | "pending"
+const CrossGlyph = () => (
+  <svg
+    viewBox="0 0 16 16"
+    className="h-4 w-4"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    aria-hidden="true"
+  >
+    <path d="M4 4l8 8M12 4l-8 8" strokeLinecap="square" />
+  </svg>
+)
+
+type NodeState = "done" | "current" | "pending" | "canceled"
 
 const Node = ({ state }: { state: NodeState }) => (
   <span
@@ -30,12 +43,15 @@ const Node = ({ state }: { state: NodeState }) => (
         "border-ink bg-ink text-paper": state === "done",
         "border-ink bg-paper text-ink": state === "current",
         "border-line bg-paper text-ash": state === "pending",
+        "border-red bg-red text-paper": state === "canceled",
       }
     )}
     aria-hidden="true"
   >
     {state === "done" ? (
       <CheckGlyph />
+    ) : state === "canceled" ? (
+      <CrossGlyph />
     ) : (
       <span
         className={clx("h-2 w-2 rounded-full", {
@@ -63,6 +79,7 @@ const TrackingTimeline = ({
   const frontier = steps.findIndex((s) => !s.done)
 
   const stateFor = (index: number, done: boolean): NodeState => {
+    if (steps[index]?.key === "canceled") return "canceled"
     if (done) return "done"
     if (index === frontier) return "current"
     return "pending"
@@ -105,7 +122,11 @@ const TrackingTimeline = ({
                 <span
                   className={clx(
                     "font-mono text-label-sm uppercase tracking-label",
-                    step.done || state === "current" ? "text-ink" : "text-ash"
+                    state === "canceled"
+                      ? "text-red"
+                      : step.done || state === "current"
+                        ? "text-ink"
+                        : "text-ash"
                   )}
                 >
                   {step.label}
@@ -147,7 +168,11 @@ const TrackingTimeline = ({
                 <span
                   className={clx(
                     "font-mono text-label uppercase tracking-label",
-                    step.done || state === "current" ? "text-ink" : "text-ash"
+                    state === "canceled"
+                      ? "text-red"
+                      : step.done || state === "current"
+                        ? "text-ink"
+                        : "text-ash"
                   )}
                 >
                   {step.label}
