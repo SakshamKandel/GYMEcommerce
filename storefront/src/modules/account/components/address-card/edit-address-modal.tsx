@@ -206,16 +206,16 @@ const EditAddress: React.FC<EditAddressProps> = ({
                 defaultValue={address.address_1 || undefined}
                 data-testid="address-1-input"
               />
-              <div className="grid grid-cols-[144px_1fr] gap-x-2">
+              <div className="grid grid-cols-2 gap-x-2">
                 <Input
-                  label="Postal code (optional)"
+                  label="Postal code"
                   name="postal_code"
                   autoComplete="postal-code"
                   defaultValue={address.postal_code || undefined}
                   data-testid="postal-code-input"
                 />
                 <Input
-                  label="Company (optional)"
+                  label="Company"
                   name="company"
                   autoComplete="organization"
                   defaultValue={address.company || undefined}

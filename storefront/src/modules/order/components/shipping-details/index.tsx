@@ -27,7 +27,10 @@ const ShippingDetails = ({ order }: ShippingDetailsProps) => {
         Delivery
       </h2>
       <div className="grid grid-cols-1 small:grid-cols-3 gap-6">
-        <div className="flex flex-col gap-1" data-testid="shipping-address-summary">
+        <div
+          className="flex min-w-0 flex-col gap-1"
+          data-testid="shipping-address-summary"
+        >
           <p className="font-mono text-label-sm uppercase tracking-label text-ash">
             Shipping address
           </p>
@@ -52,25 +55,39 @@ const ShippingDetails = ({ order }: ShippingDetailsProps) => {
           </p>
         </div>
 
-        <div className="flex flex-col gap-1" data-testid="shipping-contact-summary">
+        <div
+          className="flex min-w-0 flex-col gap-1"
+          data-testid="shipping-contact-summary"
+        >
           <p className="font-mono text-label-sm uppercase tracking-label text-ash">
             Contact
           </p>
           <p className="font-body text-body-sm text-ink">
             {order.shipping_address?.phone}
           </p>
-          <p className="font-body text-body-sm text-ink">{order.email}</p>
+          <p className="break-words font-body text-body-sm text-ink">
+            {order.email}
+          </p>
         </div>
 
-        <div className="flex flex-col gap-1" data-testid="shipping-method-summary">
+        <div
+          className="flex min-w-0 flex-col gap-1"
+          data-testid="shipping-method-summary"
+        >
           <p className="font-mono text-label-sm uppercase tracking-label text-ash">
             Method
           </p>
-          <p className="font-body text-body-sm text-ink">
-            {shippingMethod?.name} (
-            {formatNPR(shippingMethod?.total ?? 0)})
+          <p className="break-words font-body text-body-sm text-ink">
+            {shippingMethod?.name}{" "}
+            <span className="whitespace-nowrap">
+              ({formatNPR(shippingMethod?.total ?? 0)})
+            </span>
           </p>
-          {eta && <p className="font-body text-body-sm text-ash">{eta} · Cash on Delivery</p>}
+          {eta && (
+            <p className="font-body text-body-sm text-ash">
+              {eta} · Cash on Delivery
+            </p>
+          )}
         </div>
       </div>
     </div>

@@ -10,7 +10,7 @@ import TrustBadgeRow from "@modules/common/components/trust-badges"
 
 import Hero from "@modules/home/components/hero"
 import IntroStatement from "@modules/home/components/intro-statement"
-import StatsRow from "@modules/home/components/stats-row"
+import FeaturedPick from "@modules/home/components/featured-pick"
 import ShopByGoal from "@modules/home/components/shop-by-goal"
 import BrandList from "@modules/home/components/brand-list"
 import Authenticity from "@modules/home/components/authenticity"
@@ -95,8 +95,12 @@ export default async function Home(props: {
       {/* 2 · INTRO STATEMENT */}
       <IntroStatement />
 
-      {/* 4 · STATS ROW — numbers count up in view */}
-      <StatsRow />
+      {/* 4 · FEATURED PICK — real product spotlight */}
+      {region ? (
+        <Suspense fallback={null}>
+          <FeaturedPick region={region} countryCode={countryCode} />
+        </Suspense>
+      ) : null}
 
       {/* 5 · SHOP BY GOAL — staggered editorial cards */}
       <ShopByGoal />
