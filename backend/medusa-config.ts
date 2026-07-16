@@ -50,5 +50,10 @@ module.exports = defineConfig({
         providers: [emailProvider],
       },
     },
+    // Merchant-managed site banners (announcement strips) — admin UI under
+    // Extensions → Site Banners, storefront reads /store/site-banners.
+    {
+      resolve: './src/modules/site-banner',
+    },
   ],
 })

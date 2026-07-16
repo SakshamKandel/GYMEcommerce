@@ -79,6 +79,18 @@ export default async function Footer() {
             Delivery
           </p>
         </div>
+
+        <p className="pt-4 text-center font-body text-xs text-paper/40">
+          powered by{" "}
+          <a
+            href="https://www.kurlybrains.com"
+            target="_blank"
+            rel="noreferrer"
+            className="underline-offset-4 hover:text-paper/70 hover:underline"
+          >
+            kurlybrains
+          </a>
+        </p>
       </div>
     </footer>
   )

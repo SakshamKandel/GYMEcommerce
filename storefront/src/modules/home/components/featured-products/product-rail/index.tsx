@@ -1,15 +1,16 @@
 import { HttpTypes } from "@medusajs/types"
-import { listProductsWithSort } from "@lib/data/products"
+import { listProductsByTag, listProductsWithSort } from "@lib/data/products"
 import ProductPreview from "@modules/products/components/product-preview"
 import DragRail from "@modules/home/components/drag-rail"
 import PillButton from "@modules/common/components/pill-button"
 
 /**
  * HOME — Section 10: BEST SELLERS rail (REBUILD wrapper, per 03 §2.9 + guardrail §4.0.4).
- * No bestseller signal is seeded at launch (R11), so this FALLS BACK TO NEWEST — it pulls the
- * next page of newest products so the cards differ from the Fresh Stock grid above, and
- * re-fetches page 1 if the catalog is too small for a second page. Never empty.
- * // TODO: swap to metadata.bestseller ordering once a signal is seeded.
+ * Merchandising: admin-curated via the "best-seller" product tag (Admin →
+ * Products → Organize → Tags). When nothing carries the tag it FALLS BACK TO
+ * NEWEST — the next page of newest products so the cards differ from the
+ * Fresh Stock grid above, re-fetching page 1 if the catalog is too small for
+ * a second page. Never empty.
  */
 const BestSellers = async ({
   region,
@@ -18,14 +19,22 @@ const BestSellers = async ({
   region: HttpTypes.StoreRegion
   countryCode: string
 }) => {
-  let {
-    response: { products },
-  } = await listProductsWithSort({
+  let products: HttpTypes.StoreProduct[] = await listProductsByTag({
+    tagValue: "best-seller",
     countryCode,
-    sortBy: "created_at",
-    page: 2,
-    queryParams: { limit: 8 },
+    limit: 8,
   })
+
+  if (!products?.length) {
+    ;({
+      response: { products },
+    } = await listProductsWithSort({
+      countryCode,
+      sortBy: "created_at",
+      page: 2,
+      queryParams: { limit: 8 },
+    }))
+  }
 
   // Small catalog: no second page — fall back to newest page 1.
   if (!products?.length) {

@@ -188,3 +188,50 @@ export const listProductsWithSort = async ({
     queryParams,
   }
 }
+
+/**
+ * Products carrying a merchandising tag (managed in Admin → Products →
+ * Organize → Tags). Powers the tag-driven home sections:
+ *   "featured"    → Featured Pick spotlight
+ *   "best-seller" → Best Sellers rail
+ *   "trending"    → Trending rail
+ * Tag lookup revalidates every 60s, so adding/removing a tag in the admin
+ * reshuffles the homepage within a minute. Returns [] when the tag doesn't
+ * exist or nothing carries it — callers fall back to their default source.
+ */
+export const listProductsByTag = async ({
+  tagValue,
+  countryCode,
+  limit = 8,
+}: {
+  tagValue: string
+  countryCode: string
+  limit?: number
+}): Promise<HttpTypes.StoreProduct[]> => {
+  try {
+    const { product_tags } = await sdk.client.fetch<{
+      product_tags: { id: string; value: string }[]
+    }>(`/store/product-tags`, {
+      method: "GET",
+      query: { value: tagValue, limit: 1, fields: "id,value" },
+      next: { revalidate: 60 },
+      cache: "force-cache",
+    })
+
+    const tag = product_tags?.[0]
+    if (!tag) {
+      return []
+    }
+
+    const {
+      response: { products },
+    } = await listProducts({
+      countryCode,
+      queryParams: { tag_id: [tag.id], limit } as any,
+    })
+
+    return products
+  } catch {
+    return []
+  }
+}

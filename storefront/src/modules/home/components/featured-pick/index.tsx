@@ -1,7 +1,7 @@
 import Image from "next/image"
 import { HttpTypes } from "@medusajs/types"
 
-import { listProductsWithSort } from "@lib/data/products"
+import { listProductsByTag, listProductsWithSort } from "@lib/data/products"
 import { getProductPrice } from "@lib/util/get-product-price"
 import { formatNPR } from "@lib/util/money"
 import PillButton from "@modules/common/components/pill-button"
@@ -11,9 +11,10 @@ import ScrollReveal from "@modules/home/components/scroll-reveal"
  * HOME — FEATURED PICK (replaces the stats band per user feedback:
  * "something product, more better for the users").
  * Spotlights one real catalog product — image, brand, price, CTA — on a fog
- * band. Picks the highest-priced product from the newest page so the spotlight
- * always shows a flagship-feeling item without needing a manual merchandising
- * flag. // TODO(merchandising): drive via product metadata.featured later.
+ * band. Merchandising: the admin curates this by tagging a product "featured"
+ * (Admin → Products → Organize → Tags); first tagged product wins. Without a
+ * tag it falls back to the highest-priced product from the newest page so the
+ * spotlight always shows a flagship-feeling item.
  * Renders nothing if the catalog is empty (page stays clean).
  */
 const FeaturedPick = async ({
@@ -23,25 +24,35 @@ const FeaturedPick = async ({
   region: HttpTypes.StoreRegion
   countryCode: string
 }) => {
-  const {
-    response: { products },
-  } = await listProductsWithSort({
+  const tagged = await listProductsByTag({
+    tagValue: "featured",
     countryCode,
-    sortBy: "created_at",
-    page: 1,
-    queryParams: { limit: 8 },
+    limit: 1,
   })
 
-  if (!products?.length) {
-    return null
-  }
+  let pick = tagged[0]
 
-  const pick = [...products].sort((a, b) => {
-    const priceOf = (p: HttpTypes.StoreProduct) =>
-      getProductPrice({ product: p }).cheapestPrice?.calculated_price_number ??
-      0
-    return priceOf(b) - priceOf(a)
-  })[0]
+  if (!pick) {
+    const {
+      response: { products },
+    } = await listProductsWithSort({
+      countryCode,
+      sortBy: "created_at",
+      page: 1,
+      queryParams: { limit: 8 },
+    })
+
+    if (!products?.length) {
+      return null
+    }
+
+    pick = [...products].sort((a, b) => {
+      const priceOf = (p: HttpTypes.StoreProduct) =>
+        getProductPrice({ product: p }).cheapestPrice
+          ?.calculated_price_number ?? 0
+      return priceOf(b) - priceOf(a)
+    })[0]
+  }
 
   const { cheapestPrice } = getProductPrice({ product: pick })
   const brand = pick.collection?.title

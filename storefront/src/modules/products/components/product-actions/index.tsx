@@ -291,21 +291,9 @@ export default function ProductActions({
   const handleAddToCart = async () => {
     if (!selectedVariant?.id) return null
 
-    // Session continuity for guests: send them to login carrying the exact
-    // return URL + pending add intent (?add=&qty=). After auth they land back
-    // here and the effect below completes the add automatically.
-    if (!isAuthenticated) {
-      const params = new URLSearchParams(searchParams.toString())
-      params.set("v_id", selectedVariant.id)
-      params.set("add", selectedVariant.id)
-      params.set("qty", String(quantity))
-      const returnTo = `${pathname}?${params.toString()}`
-      router.push(
-        `/${countryCode}/account?redirect=${encodeURIComponent(returnTo)}`
-      )
-      return
-    }
-
+    // Guest checkout: adding to cart never requires an account. addToCart
+    // creates a guest cart on first add and persists it via the
+    // _medusa_cart_id cookie, so the bag survives future visits.
     setIsAdding(true)
 
     await addToCart({

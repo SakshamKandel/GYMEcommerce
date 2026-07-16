@@ -74,7 +74,9 @@ export const getCartId = async () => {
 export const setCartId = async (cartId: string) => {
   const cookies = await nextCookies()
   cookies.set("_medusa_cart_id", cartId, {
-    maxAge: 60 * 60 * 24 * 7,
+    // 30 days: guest carts (no account) must survive between visits — the
+    // cookie is the only pointer a guest has to their bag.
+    maxAge: 60 * 60 * 24 * 30,
     httpOnly: true,
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",

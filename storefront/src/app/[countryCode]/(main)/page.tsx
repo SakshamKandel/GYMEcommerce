@@ -15,7 +15,11 @@ import ShopByGoal from "@modules/home/components/shop-by-goal"
 import BrandList from "@modules/home/components/brand-list"
 import Authenticity from "@modules/home/components/authenticity"
 import ScrollReveal from "@modules/home/components/scroll-reveal"
-import { FreshStock, BestSellers } from "@modules/home/components/featured-products"
+import {
+  FreshStock,
+  BestSellers,
+  TrendingSection,
+} from "@modules/home/components/featured-products"
 
 export const metadata: Metadata = {
   title: "Protein Pasal — Authentic Protein & Sports Nutrition in Nepal",
@@ -121,6 +125,14 @@ export default async function Home(props: {
           ) : null}
         </div>
       </section>
+
+      {/* 6b · TRENDING — admin-curated via the "trending" product tag; the
+          whole section disappears when no product carries the tag. */}
+      {region ? (
+        <Suspense fallback={null}>
+          <TrendingSection region={region} countryCode={countryCode} />
+        </Suspense>
+      ) : null}
 
       {/* 7 · BRAND LINK-LIST — hover image peek follows the rows */}
       <BrandList collections={collections ?? []} />
