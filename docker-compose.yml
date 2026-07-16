@@ -1,0 +1,60 @@
+# Protein Pasal — full-stack compose
+# Usage: docker compose up --build
+# Note for local dev on this machine: a native PostgreSQL 18 service already
+# runs on host port 5432, so the containerized Postgres maps to host 5433.
+# Containers talk to each other over the internal network (postgres:5432).
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: protein_pasal
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d protein_pasal"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/protein_pasal
+      STORE_CORS: http://localhost:8000
+      ADMIN_CORS: http://localhost:9000
+      AUTH_CORS: http://localhost:9000,http://localhost:8000
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      COOKIE_SECRET: ${COOKIE_SECRET:-change-me-in-production}
+    ports:
+      - "9000:9000"
+
+  storefront:
+    build:
+      context: ./storefront
+      args:
+        # Publishable key must exist in the backend before building the
+        # storefront image (created by the seed script).
+        NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY:-pk_test}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      MEDUSA_BACKEND_URL: http://backend:9000
+      NEXT_PUBLIC_BASE_URL: http://localhost:8000
+      NEXT_PUBLIC_DEFAULT_REGION: np
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:-change-me-in-production}
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:
