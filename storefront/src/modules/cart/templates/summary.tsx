@@ -10,6 +10,7 @@ type SummaryProps = {
   cart: HttpTypes.StoreCart & {
     promotions: HttpTypes.StorePromotion[]
   }
+  customer: HttpTypes.StoreCustomer | null
 }
 
 function getCheckoutStep(cart: HttpTypes.StoreCart) {
@@ -22,7 +23,7 @@ function getCheckoutStep(cart: HttpTypes.StoreCart) {
   }
 }
 
-const Summary = ({ cart }: SummaryProps) => {
+const Summary = ({ cart, customer }: SummaryProps) => {
   const step = getCheckoutStep(cart)
 
   return (
@@ -37,17 +38,30 @@ const Summary = ({ cart }: SummaryProps) => {
 
       <CartTotals totals={cart} />
 
-      <PillButton
-        href={"/checkout?step=" + step}
-        variant="red"
-        data-testid="checkout-button"
-        className="w-full justify-center"
-      >
-        Proceed to checkout
-      </PillButton>
+      {customer ? (
+        <PillButton
+          href={"/checkout?step=" + step}
+          variant="red"
+          data-testid="checkout-button"
+          className="w-full justify-center"
+        >
+          Proceed to checkout
+        </PillButton>
+      ) : (
+        <PillButton
+          href="/account"
+          variant="red"
+          data-testid="checkout-button"
+          className="w-full justify-center"
+        >
+          Log in to checkout
+        </PillButton>
+      )}
 
       <p className="text-center font-mono text-label-sm uppercase tracking-label text-ash">
-        Shipping calculated at checkout · COD available
+        {customer
+          ? "Shipping calculated at checkout · COD available"
+          : "An account is required to place orders"}
       </p>
 
       <div className="pt-2 border-t border-line">

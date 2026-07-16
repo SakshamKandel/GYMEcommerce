@@ -24,7 +24,9 @@ const CartTemplate = ({
             </div>
             <div className="relative">
               <div className="sticky top-6">
-                {cart && cart.region && <Summary cart={cart as any} />}
+                {cart && cart.region && (
+                  <Summary cart={cart as any} customer={customer} />
+                )}
               </div>
             </div>
           </div>

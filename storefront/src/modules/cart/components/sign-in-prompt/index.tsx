@@ -5,10 +5,11 @@ const SignInPrompt = () => {
     <div className="flex flex-col gap-4 small:flex-row small:items-center small:justify-between bg-fog px-6 py-5">
       <div>
         <h2 className="font-body text-h4 font-semibold text-ink">
-          Already have an account?
+          Log in to place your order
         </h2>
         <p className="mt-1 font-body text-body-sm text-ash">
-          Log in for faster checkout and order history.
+          An account is required to checkout — it keeps your orders trackable
+          and your details safe. New here? Registering takes a minute.
         </p>
       </div>
       <LocalizedClientLink
