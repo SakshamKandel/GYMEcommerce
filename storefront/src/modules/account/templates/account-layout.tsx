@@ -20,10 +20,17 @@ const AccountLayout: React.FC<AccountLayoutProps> = ({
   return (
     <div className="flex-1 bg-paper py-10 md:py-16" data-testid="account-page">
       <div className="content-container max-w-5xl mx-auto flex flex-col">
-        <div className="grid grid-cols-1 small:grid-cols-[220px_1fr] gap-10 small:gap-16">
-          <div>{customer && <AccountNav customer={customer} />}</div>
-          <div className="flex-1 min-w-0">{children}</div>
-        </div>
+        {customer ? (
+          <div className="grid grid-cols-1 small:grid-cols-[220px_1fr] gap-10 small:gap-16">
+            <div>
+              <AccountNav customer={customer} />
+            </div>
+            <div className="flex-1 min-w-0">{children}</div>
+          </div>
+        ) : (
+          // Logged-out (login/register): no sidebar — center the form.
+          <div className="flex w-full justify-center">{children}</div>
+        )}
         {customer && (
           <div className="mt-16 border-t border-line pt-10 flex flex-col small:flex-row items-start small:items-end justify-between gap-6">
             <div>
