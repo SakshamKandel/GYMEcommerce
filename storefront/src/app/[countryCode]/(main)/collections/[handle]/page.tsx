@@ -20,6 +20,10 @@ type Props = {
 
 export const PRODUCT_LIMIT = 12
 
+// Always render on demand: live catalog data (cookie-scoped auth headers) +
+// URL filters conflict with static optimization (DYNAMIC_SERVER_USAGE).
+export const dynamic = "force-dynamic"
+
 export async function generateStaticParams() {
   // Never fail the build when the backend is unreachable (Docker image
   // builds, cold CI environments) — pages render on demand instead.

@@ -18,6 +18,11 @@ type Props = {
   }>
 }
 
+// Always render on demand: this page reads live catalog data (cookie-scoped
+// auth headers) and URL filters, which conflicts with static optimization
+// (DYNAMIC_SERVER_USAGE) in a production build.
+export const dynamic = "force-dynamic"
+
 export async function generateStaticParams() {
   // Never fail the build when the backend is unreachable (Docker image
   // builds, cold CI environments) — pages render on demand instead.
