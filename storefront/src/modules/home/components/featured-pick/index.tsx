@@ -51,14 +51,14 @@ const FeaturedPick = async ({
       <div className="shell section-y">
         <ScrollReveal>
           <div className="grid items-center gap-10 md:grid-cols-2">
-            <div className="relative mx-auto aspect-square w-full max-w-md overflow-hidden rounded-base bg-paper">
+            <div className="relative mx-auto aspect-square w-full max-w-xl overflow-hidden rounded-photo bg-paper">
               {pick.thumbnail && (
                 <Image
                   src={pick.thumbnail}
                   alt={brand ? `${brand} — ${pick.title}` : pick.title}
                   fill
-                  sizes="(max-width: 768px) 90vw, 40vw"
-                  className="object-contain p-8"
+                  sizes="(max-width: 768px) 94vw, 45vw"
+                  className="object-cover"
                 />
               )}
             </div>
