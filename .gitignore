@@ -6,3 +6,4 @@ node_modules/
 .medusa/
 dist/
 .gstack/
+.findex_db/
