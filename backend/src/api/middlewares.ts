@@ -1,17 +1,16 @@
-import { defineMiddlewares, authenticate } from "@medusajs/framework/http"
+import { defineMiddlewares } from "@medusajs/framework/http"
 
 /**
- * Orders require a logged-in customer (business rule): cart completion is
- * rejected with 401 unless the request carries a valid customer session/JWT.
- * The storefront mirrors this by routing guests to login before checkout —
- * this middleware is the hard guarantee behind that UX.
+ * Guest checkout is supported: cart completion is open to unauthenticated
+ * shoppers (COD-first market — most buyers won't create accounts). The
+ * order's identity contract for guests is the email/phone captured on the
+ * cart at the address step, which is exactly what the guest tracking
+ * endpoint (POST /store/order-tracking) verifies against.
+ *
+ * Core completion validation (email, shipping address, shipping method,
+ * payment collection) still applies inside the completeCartWorkflow, so an
+ * anonymous cart can't skip straight to an order without checkout data.
  */
 export default defineMiddlewares({
-  routes: [
-    {
-      matcher: "/store/carts/:id/complete",
-      method: ["POST"],
-      middlewares: [authenticate("customer", ["session", "bearer"])],
-    },
-  ],
+  routes: [],
 })

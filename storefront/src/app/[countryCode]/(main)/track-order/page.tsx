@@ -8,7 +8,15 @@ export const metadata: Metadata = {
     "Track your Protein Pasal order with your order number and the email or phone you used at checkout. Cash on Delivery across Nepal.",
 }
 
-export default function TrackOrderPage() {
+export default async function TrackOrderPage(props: {
+  searchParams: Promise<{ order?: string; contact?: string }>
+}) {
+  // Deep links from the confirmation page and order emails prefill the form:
+  // /track-order?order=1234&contact=you@mail.com
+  const searchParams = await props.searchParams
+  const initialDisplayId = searchParams.order?.replace(/[^0-9]/g, "") || undefined
+  const initialContact = searchParams.contact || undefined
+
   return (
     <div className="bg-paper py-10 md:py-16 min-h-[calc(100vh-64px)]">
       <div className="content-container flex flex-col gap-8 max-w-4xl w-full">
@@ -26,7 +34,10 @@ export default function TrackOrderPage() {
           </p>
         </header>
 
-        <TrackOrderForm />
+        <TrackOrderForm
+          initialDisplayId={initialDisplayId}
+          initialContact={initialContact}
+        />
       </div>
     </div>
   )

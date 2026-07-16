@@ -9,7 +9,17 @@ import Input from "@modules/common/components/input"
 import TrackingResult from "@modules/order/components/tracking-result"
 import { TRACK_ORDER_INITIAL_STATE } from "@modules/order/lib/tracking"
 
-const TrackOrderForm = () => {
+type TrackOrderFormProps = {
+  /** Prefill from URL params (?order=1234&contact=you@mail.com) — used by the
+   * confirmation page + email deep links so guests land with both fields set. */
+  initialDisplayId?: string
+  initialContact?: string
+}
+
+const TrackOrderForm = ({
+  initialDisplayId,
+  initialContact,
+}: TrackOrderFormProps) => {
   const [state, formAction] = useActionState(
     trackOrder,
     TRACK_ORDER_INITIAL_STATE
@@ -53,6 +63,7 @@ const TrackOrderForm = () => {
             inputMode="numeric"
             autoComplete="off"
             required
+            defaultValue={initialDisplayId}
             data-testid="track-order-number"
           />
           <Input
@@ -60,6 +71,7 @@ const TrackOrderForm = () => {
             name="contact"
             autoComplete="off"
             required
+            defaultValue={initialContact}
             data-testid="track-order-contact"
           />
         </div>

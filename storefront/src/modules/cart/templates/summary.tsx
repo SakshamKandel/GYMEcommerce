@@ -38,30 +38,28 @@ const Summary = ({ cart, customer }: SummaryProps) => {
 
       <CartTotals totals={cart} />
 
-      {customer ? (
-        <PillButton
-          href={"/checkout?step=" + step}
-          variant="red"
-          data-testid="checkout-button"
-          className="w-full justify-center"
-        >
-          Proceed to checkout
-        </PillButton>
-      ) : (
+      <PillButton
+        href={"/checkout?step=" + step}
+        variant="red"
+        data-testid="checkout-button"
+        className="w-full justify-center"
+      >
+        Proceed to checkout
+      </PillButton>
+
+      {!customer && (
         <PillButton
           href="/account?redirect=/checkout"
-          variant="red"
-          data-testid="checkout-button"
+          variant="outline"
+          data-testid="sign-in-checkout-button"
           className="w-full justify-center"
         >
-          Log in to checkout
+          Log in for faster checkout
         </PillButton>
       )}
 
       <p className="text-center font-mono text-label-sm uppercase tracking-label text-ash">
-        {customer
-          ? "Shipping calculated at checkout · COD available"
-          : "An account is required to place orders"}
+        Shipping calculated at checkout · COD available
       </p>
 
       <div className="pt-2 border-t border-line">

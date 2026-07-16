@@ -63,6 +63,38 @@ export default async function OrderCompletedTemplate({
 
           <OrderDetails order={order} />
 
+          {/* Tracking code — the guest's key to /track-order (no account needed). */}
+          <div
+            className="border border-red/30 bg-fog px-6 py-6"
+            data-testid="tracking-code-callout"
+          >
+            <div className="flex flex-col gap-4 small:flex-row small:items-center small:justify-between">
+              <div>
+                <p className="font-mono text-label uppercase tracking-label text-ash mb-2">
+                  Your tracking code
+                </p>
+                <p className="font-display text-4xl uppercase leading-none text-red">
+                  #{order.display_id}
+                </p>
+                <p className="mt-3 font-body text-body-sm text-ash max-w-md">
+                  Save this code — with it and the email or phone you used at
+                  checkout, you can follow your delivery anytime. No account
+                  needed. We&apos;ve also emailed it to{" "}
+                  <span className="font-semibold text-ink">{order.email}</span>.
+                </p>
+              </div>
+              <PillButton
+                href={`/track-order?order=${order.display_id}${
+                  order.email ? `&contact=${encodeURIComponent(order.email)}` : ""
+                }`}
+                variant="red"
+                className="self-start small:self-center shrink-0"
+              >
+                Track my order
+              </PillButton>
+            </div>
+          </div>
+
           <div>
             <div className="flex flex-wrap items-baseline justify-between gap-2 mb-4">
               <h2 className="font-body text-h4 font-semibold text-ink">
